@@ -1,5 +1,5 @@
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: none
 
 ## Question
@@ -24,3 +24,9 @@ Blocked by: none
 - clean server、clean client、data generation 和 GameTest server 的运行配置均能生成。
 - upstream baseline SHA、目标 NeoForge 版本和依赖解析结果有可审阅记录。
 - 未完成 GTM API 迁移时允许源代码编译失败，但失败必须来自已知旧 API，而不是工具链或依赖坐标错误。
+
+## Answer
+
+工具链基线已实现并合入 PR 分支，提交为 `de11980fd`。目标配置为 MC `26.1.2`、NeoForge `26.1.2.103`、loader `4`、Java `25`、Gradle `9.1.0`、ModDevGradle `2.0.146` 和官方 Mojang mappings；Parchment 与旧 Forge/Mixin 显式依赖已移除。Registrate `MC26.1-1.5.0`、Configuration `4.1.2+26.1.2` 和目标依赖仓库已接入。
+
+上游同步基线记录为 `4c30877e75544603615ff8b1647d9beabe03122c`。`tasks --all`、`createMinecraftArtifacts`、`generateModMetadata`、各目标 run preparation、目标 compileClasspath dependency resolution 和 `spotlessMiscCheck` 已通过；Java compile 尚未完成，之前因远程 Maven TLS 下载失败，且源代码仍包含后续票要处理的旧 Forge API。实现详情见 `.scratch/port-26.1/implementation-notes/task-08-toolchain-baseline.md`。

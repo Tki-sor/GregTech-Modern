@@ -28,7 +28,7 @@
 
 实施阶段使用同一目录下的计划票；`Blocked by` 是实现前置，不是线性步骤。最先可取的是 08「移植分支与工具链基线」；08 完成后，09「完整 MUI 移植」与 10「核心 NeoForge API」可并行。
 
-- [08 移植分支与工具链基线](issues/08-toolchain-baseline.md)：无阻塞；建立目标坐标、Java/Gradle/MDG、仓库、metadata、run config 和同步基线。
+- [08 移植分支与工具链基线](issues/08-toolchain-baseline.md)：已完成；目标坐标、Java/Gradle/MDG、仓库、metadata、run config 和同步基线已写入提交 `de11980fd`。
 - [09 完整 MUI 26.1.2 移植](issues/09-mui-port.md)：阻塞于 08；从 ModularUI-Modern 1.21.1 分支完整迁移并让 GTM 消费。
 - [10 核心 NeoForge API 与注册系统](issues/10-core-neoforge-api.md)：阻塞于 08；迁移入口、总线、注册表、能力注册、包名与公共初始化。
 - [11 数据、配方与 datagen](issues/11-data-and-datagen.md)：阻塞于 10；迁移 Data Component、datapack registry、loot、tags、recipe codec 和生成链路。
