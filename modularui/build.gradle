@@ -4,10 +4,15 @@ plugins {
     id 'idea'
     id 'maven-publish'
     alias libs.plugins.modDevGradle
+    alias libs.plugins.lombok
 }
 
 group = maven_group
 version = mod_version
+
+lombok {
+    version = '1.18.48'
+}
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
@@ -146,6 +151,9 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.compilerArgs += ['-Xmaxerrs', '200']
     options.compilerArgs << '-Xlint:-removal'
+    doFirst {
+        options.compilerArgs += ['-processor', 'lombok.launch.AnnotationProcessorHider$AnnotationProcessor']
+    }
 }
 
 

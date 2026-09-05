@@ -3,7 +3,6 @@ package brachy.modularui.integration.recipeviewer.handlers.item;
 import brachy.modularui.integration.recipeviewer.entry.item.ItemEntryList;
 import brachy.modularui.integration.recipeviewer.entry.item.ItemStackList;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 

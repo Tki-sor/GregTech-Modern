@@ -11,7 +11,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.event.EventHooks;
@@ -240,7 +240,7 @@ public class ModularCraftingSlot extends ModularSlot {
     }
 
     protected boolean setRecipeUsed(@Nullable Object possibleRecipeHolder, ServerPlayer player, RecipeHolder<CraftingRecipe> recipe) {
-        if (!recipe.value().isSpecial() && player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING) &&
+        if (!recipe.value().isSpecial() && player.level().getGameRules().get(GameRules.LIMITED_CRAFTING) &&
                 !player.getRecipeBook().contains(recipe)) {
             return false;
         }

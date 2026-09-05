@@ -253,7 +253,6 @@ public class GuiViewportStack implements IViewportStack {
     }
 
     @Override
-    @Nullable
     @Override
     public TransformationMatrix peek() {
         return this.top;

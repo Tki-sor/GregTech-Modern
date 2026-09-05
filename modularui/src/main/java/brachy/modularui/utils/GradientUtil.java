@@ -1,7 +1,5 @@
 package brachy.modularui.utils;
 
-import net.minecraft.util.FastColor;
-
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 
 public class GradientUtil {

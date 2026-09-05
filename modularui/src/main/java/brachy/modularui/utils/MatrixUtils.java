@@ -1,12 +1,10 @@
 package brachy.modularui.utils;
 
 import brachy.modularui.utils.math.MathUtils;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import com.mojang.blaze3d.platform.GlUtil;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -42,7 +40,7 @@ public class MatrixUtils {
     private static final Table<Direction, Direction, Matrix4fc> rotations = Tables
             .synchronizedTable(HashBasedTable.create());
 
-    private static final ByteBuffer PIXEL_DEPTH_BUFFER = GlUtil.allocateMemory(4);
+    private static final ByteBuffer PIXEL_DEPTH_BUFFER = ByteBuffer.allocateDirect(4);
     private static final int[] VIEWPORT_COORDS = {0, 0, 0, 0};
 
     /**

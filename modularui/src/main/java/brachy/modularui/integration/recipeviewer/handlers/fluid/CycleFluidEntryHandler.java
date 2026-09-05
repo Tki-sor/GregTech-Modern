@@ -2,7 +2,6 @@ package brachy.modularui.integration.recipeviewer.handlers.fluid;
 
 import brachy.modularui.integration.recipeviewer.entry.fluid.FluidEntryList;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 

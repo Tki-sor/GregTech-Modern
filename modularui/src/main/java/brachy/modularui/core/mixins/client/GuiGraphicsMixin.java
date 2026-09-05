@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Mixin(GuiGraphicsExtractor.class)
-public abstract class GuiGraphicsExtractorMixin {
+public abstract class GuiGraphicsMixin {
 /*
     @Shadow(remap = false)
     private ItemStack tooltipStack;

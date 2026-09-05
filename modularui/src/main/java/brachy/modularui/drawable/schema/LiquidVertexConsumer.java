@@ -1,7 +1,6 @@
 package brachy.modularui.drawable.schema;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.SectionPos;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -17,7 +16,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * batch all visible chunks in schemas together.
  */
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class LiquidVertexConsumer implements VertexConsumer {
 
     private final VertexConsumer delegate;

@@ -5,7 +5,6 @@ import brachy.modularui.integration.jei.handler.JeiScreenHandler;
 import brachy.modularui.screen.ContainerScreenWrapper;
 import brachy.modularui.screen.ScreenWrapper;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.Identifier;
 
 import lombok.Getter;

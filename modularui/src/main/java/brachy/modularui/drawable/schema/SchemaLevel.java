@@ -5,7 +5,6 @@ import brachy.modularui.utils.BlockPosUtil;
 import brachy.modularui.utils.RegistryAccessContainer;
 import brachy.modularui.utils.sides.SidedAccessHelper;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
