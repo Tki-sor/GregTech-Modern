@@ -46,6 +46,7 @@ import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -268,7 +269,10 @@ public class BaseSchemaRenderer implements IDrawable {
         CameraRenderState cameraState = new CameraRenderState();
         cameraState.pos = new Vec3(camera.pos().x, camera.pos().y, camera.pos().z);
         cameraState.initialized = true;
-        cameraState.viewRotationMatrix = createViewMatrix(new Matrix4f());
+        Vector3f direction = camera.lookAt().sub(camera.pos(), new Vector3f()).normalize();
+        cameraState.orientation = new Quaternionf().rotationTo(new Vector3f(0.0f, 0.0f, -1.0f), direction);
+        cameraState.viewRotationMatrix = new Matrix4f().rotation(cameraState.orientation.conjugate(new Quaternionf()));
+        cameraState.projectionMatrix = createProjectionMatrix(1.0f, 1.0f);
         dispatcher.prepare(cameraState.pos);
 
         for (var entry : this.schema) {
