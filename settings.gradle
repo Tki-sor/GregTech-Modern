@@ -20,4 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
+include ':modularui'
+project(':modularui').projectDir = file('modularui')
+
 rootProject.name = "${mod_id}"

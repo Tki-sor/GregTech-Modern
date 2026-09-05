@@ -1,0 +1,202 @@
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    alias libs.plugins.modDevGradle
+}
+
+group = maven_group
+version = mod_version
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    withSourcesJar()
+}
+
+repositories {
+    maven { url = 'https://maven.neoforged.net/releases' }
+    maven { url = 'https://maven.blamejared.com/' }
+    maven { url = 'https://modmaven.dev' }
+    maven { url = 'https://maven.shedaniel.me/' }
+    maven { url = 'https://maven.theillusivec4.top/' }
+}
+
+sourceSets {
+    main.resources.srcDir 'src/generated/resources'
+
+    // EMI has no verified 26.1.2 artifact. Its optional integration is cut
+    // from this target while JEI and REI remain complete public surfaces.
+    main.java {
+        exclude 'brachy/modularui/integration/emi/**'
+        exclude 'brachy/modularui/core/mixins/emi/**'
+        exclude 'brachy/modularui/integration/embeddium/**'
+        exclude 'brachy/modularui/test/**'
+    }
+
+    client {
+        compileClasspath += main.output
+        runtimeClasspath += main.output + main.runtimeClasspath
+    }
+
+    test {
+        compileClasspath += main.output + main.compileClasspath
+        runtimeClasspath += main.output + main.runtimeClasspath
+    }
+}
+
+configurations {
+    runtimeOnly.canBeResolved = false
+    clientRuntimeOnly.canBeResolved = false
+    testImplementation.canBeResolved = false
+    testRuntimeOnly.canBeResolved = false
+
+    runtimeClasspath.extendsFrom localRuntime
+    clientRuntimeClasspath.extendsFrom clientLocalRuntime
+}
+
+neoForge {
+    version = libs.versions.neoForge.get()
+    validateAccessTransformers = false
+    interfaceInjectionData = project.files('injected_interfaces/interfaces.json')
+
+    accessTransformers {
+        def accessTransformer = project.file('src/main/resources/META-INF/accesstransformer.cfg')
+        from(accessTransformer)
+        publish(accessTransformer)
+    }
+
+    addModdingDependenciesTo(sourceSets.test)
+    addModdingDependenciesTo(sourceSets.client)
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.client)
+            sourceSet(sourceSets.test)
+        }
+    }
+
+    runs {
+        client {
+            client()
+            sourceSet = sourceSets.client
+            ideName = 'ModularUI Client'
+            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+        }
+
+        server {
+            server()
+            sourceSet = sourceSets.main
+            ideName = 'ModularUI Server'
+            gameDirectory.set(file('run/server'))
+            programArgument '--nogui'
+            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+        }
+
+        gameTestServer {
+            type = 'gameTestServer'
+            sourceSet = sourceSets.test
+            ideName = 'ModularUI Game Tests'
+            gameDirectory.set(file('run/gametest'))
+            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            environment('TEST', 'true')
+        }
+
+        data {
+            clientData()
+            sourceSet = sourceSets.main
+            ideName = 'ModularUI Data Generation'
+            gameDirectory.set(file('run/data'))
+            programArguments.addAll('--mod', mod_id)
+            programArguments.addAll('--all')
+            programArguments.addAll('--output', file('src/generated/resources/').getAbsolutePath())
+            programArguments.addAll('--existing', file('src/main/resources/').getAbsolutePath())
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            jvmArgument('-ea:brachy.modularui...')
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.48'
+    annotationProcessor 'org.projectlombok:lombok:1.18.48'
+    compileOnly 'org.jetbrains:annotations:26.0.2-1'
+    jarJar(implementation('com.ezylang:EvalEx:3.6.0'))
+
+    compileOnly 'mezz.jei:jei-26.1.2-common-api:29.35.0.94'
+    compileOnly 'mezz.jei:jei-26.1.2-common:29.35.0.94'
+    compileOnly 'mezz.jei:jei-26.1.2-gui:29.35.0.94'
+    compileOnly 'mezz.jei:jei-26.1.2-neoforge-api:29.35.0.94'
+    compileOnly 'me.shedaniel:RoughlyEnoughItems-default-plugin:26.1.819'
+    compileOnly 'me.shedaniel:RoughlyEnoughItems-api-neoforge:26.1.819'
+    compileOnly 'me.shedaniel:RoughlyEnoughItems-neoforge:26.1.819'
+    compileOnly 'top.theillusivec4.curios:curios-neoforge:15.0.0+26.1.2'
+
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '200']
+    options.compilerArgs << '-Xlint:-removal'
+}
+
+
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def neoVersion = libs.versions.neoForge.get()
+    neoVersion = neoVersion.substring(0, neoVersion.lastIndexOf('.'))
+    def replaceProperties = [
+            version          : version,
+            mod_id           : mod_id,
+            minecraft_version: libs.versions.minecraft.get(),
+            loader_version   : libs.versions.loader.get(),
+            forge_version    : neoVersion,
+            jei_version      : '29.35.0.94',
+            emi_version      : '0',
+            rei_version      : '26.1.819',
+            curios_version   : '15.0.0+26.1.2',
+            mod_license      : mod_license,
+            mod_name         : mod_name,
+            mod_description  : mod_description,
+            mod_url           : mod_url,
+            mod_issue_tracker : mod_issue_tracker
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir(generateModMetadata)
+neoForge.ideSyncTask generateModMetadata
+
+base {
+    archivesName = "modularui-mc${libs.versions.minecraft.get()}"
+}
+
+tasks.register('slimJar', Jar) {
+    dependsOn classes
+    archiveClassifier = 'slim'
+    from sourceSets.main.output
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = base.archivesName.get()
+            artifact tasks.named('slimJar')
+            from components.java
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'unit.testing', 'true'
+}
