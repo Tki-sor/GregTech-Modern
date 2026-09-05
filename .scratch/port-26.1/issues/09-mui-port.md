@@ -1,5 +1,5 @@
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 08
 
 ## Question
@@ -22,4 +22,12 @@ Blocked by: 08
 - MUI 模块可以独立编译并产出可被 GTM 消费的 artifact/project dependency。
 - GTM 当前所有 `brachy.modularui` 引用完成解析，代表性 machine、cover、recipe-viewer panel 可构造。
 - MUI API 的 screen/widget/value-sync/recipe-viewer smoke tests 通过；不能依赖被砍的 EMI、Create、Embeddium 或 Oculus。
+
+## Answer
+
+完整 MUI 移植已完成并合入 PR 分支，合并提交为 `e2c2807aad492e3951ed2c042dd509373e3ed83a`。`ModularUI-Modern` 的 `1.21.1` 分支（commit `c13e141b830c70922c3540ea245ecf5d29e1029d`）已作为仓库内独立 `:modularui` Gradle 模块迁移到 MC 26.1.2 / NeoForge / Java 25。
+
+模块保留 `brachy.modularui` 完整 API，并覆盖 screen、widget、drawable、menu、value sync、recipe viewer、loader integration 和 MUI 自身的 client/network/data 触点。schema viewer 使用 26.1 的 `GuiGraphicsExtractor`、render-state、PIP texture、`SubmitNodeCollector`、block/fluid/block-entity/outline/highlight 几何提交路径，不再使用空背景 fallback。
+
+验证结果：`:modularui:compileJava`、`:modularui:test`（10 tests, 0 failures）、`:modularui:check`、`:modularui:jar` 和 `git diff --check` 通过。根 GTM compile 仍等待后续 API/data/transfer/network/integration 票完成。
 - clean client 能打开至少一个 GTM machine/cover UI，不发生 classloading、渲染或网络同步崩溃。
