@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.misc.ImageCache;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkEvent;
 
 import java.io.IOException;
 

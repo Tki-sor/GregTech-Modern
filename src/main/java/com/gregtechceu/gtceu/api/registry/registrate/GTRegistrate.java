@@ -15,23 +15,21 @@ import com.gregtechceu.gtceu.core.mixins.registrate.AbstractRegistrateAccessor;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.javafmlmod.FMLModContainer;
-import net.minecraftforge.registries.RegisterEvent;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 import com.tterrag.registrate.AbstractRegistrate;
 import com.tterrag.registrate.builders.Builder;
@@ -70,8 +68,8 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
         super(modId);
     }
 
-    public ResourceLocation makeResourceLocation(String path) {
-        return ResourceLocation.fromNamespaceAndPath(this.getModid(), path);
+    public Identifier makeIdentifier(String path) {
+        return Identifier.fromNamespaceAndPath(this.getModid(), path);
     }
 
     /**
@@ -134,7 +132,7 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
                     GTCEu.LOGGER.fatal(hashtags);
                 });
             } else {
-                registrate.registerEventListeners(modEventBus.orElse(FMLJavaModLoadingContext.get().getModEventBus()));
+                registrate.registerEventListeners(Objects.requireNonNull(modEventBus.orElse(GTCEu.gtModBus)));
             }
         }
         EXISTING_REGISTRATES.put(modId, registrate);
@@ -175,8 +173,8 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
         });
     }
 
-    public IGTFluidBuilder createFluid(String name, String langKey, Material material, ResourceLocation stillTexture,
-                                       ResourceLocation flowingTexture) {
+    public IGTFluidBuilder createFluid(String name, String langKey, Material material, Identifier stillTexture,
+                                       Identifier flowingTexture) {
         return entry(name,
                 callback -> new GTFluidBuilder<>(this, this, material, name, langKey, callback, stillTexture,
                         flowingTexture, GTFluidBuilder::defaultFluidType).defaultLang().defaultSource()
@@ -185,7 +183,7 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
 
     public <DEFINITION extends MachineDefinition,
             MACHINE extends MetaMachine> MachineBuilder<DEFINITION, MACHINE, ?> machine(String name,
-                                                                                        Function<ResourceLocation, DEFINITION> definitionFactory,
+                                                                                        Function<Identifier, DEFINITION> definitionFactory,
                                                                                         BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory,
                                                                                         BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
                                                                                         MachineInstanceFactory<MACHINE> blockEntityFactory) {
@@ -217,7 +215,7 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
         return new SoundEntryBuilder(GTCEu.id(name));
     }
 
-    public SoundEntryBuilder sound(ResourceLocation name) {
+    public SoundEntryBuilder sound(Identifier name) {
         return new SoundEntryBuilder(name);
     }
 
@@ -246,34 +244,35 @@ public class GTRegistrate extends AbstractRegistrate<GTRegistrate> {
                 callback -> GTBlockBuilder.create(this, parent, name, callback, factory));
     }
 
-    private @Nullable RegistryEntry<CreativeModeTab> currentTab;
-    private static final Map<RegistryEntry<?>, @Nullable RegistryEntry<CreativeModeTab>> TAB_LOOKUP = new IdentityHashMap<>();
+    private @Nullable RegistryEntry<CreativeModeTab, CreativeModeTab> currentTab;
+    private static final Map<RegistryEntry<?, ?>, @Nullable RegistryEntry<CreativeModeTab, CreativeModeTab>> TAB_LOOKUP = new IdentityHashMap<>();
 
-    public @Nullable RegistryEntry<CreativeModeTab> creativeModeTab() {
+    public @Nullable RegistryEntry<CreativeModeTab, CreativeModeTab> creativeModeTab() {
         return this.currentTab;
     }
 
-    public void creativeModeTab(Supplier<@Nullable RegistryEntry<CreativeModeTab>> currentTab) {
+    public void creativeModeTab(Supplier<@Nullable RegistryEntry<CreativeModeTab, CreativeModeTab>> currentTab) {
         this.currentTab = currentTab.get();
     }
 
-    public void creativeModeTab(RegistryEntry<CreativeModeTab> currentTab) {
+    public void creativeModeTab(RegistryEntry<CreativeModeTab, CreativeModeTab> currentTab) {
         this.currentTab = currentTab;
     }
 
-    public boolean isInCreativeTab(RegistryEntry<?> entry, RegistryEntry<CreativeModeTab> tab) {
+    public boolean isInCreativeTab(RegistryEntry<?, ?> entry, RegistryEntry<CreativeModeTab, CreativeModeTab> tab) {
         return TAB_LOOKUP.get(entry) == tab;
     }
 
-    public void setCreativeTab(RegistryEntry<?> entry, @Nullable RegistryEntry<CreativeModeTab> tab) {
+    public void setCreativeTab(RegistryEntry<?, ?> entry,
+                               @Nullable RegistryEntry<CreativeModeTab, CreativeModeTab> tab) {
         TAB_LOOKUP.put(entry, tab);
     }
 
     protected <R,
-            T extends R> RegistryEntry<T> accept(String name, ResourceKey<? extends Registry<R>> type,
-                                                 Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> creator,
-                                                 NonNullFunction<RegistryObject<T>, ? extends RegistryEntry<T>> entryFactory) {
-        RegistryEntry<T> entry = super.accept(name, type, builder, creator, entryFactory);
+            T extends R> RegistryEntry<R, T> accept(String name, ResourceKey<? extends Registry<R>> type,
+                                                    Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> creator,
+                                                    NonNullFunction<DeferredHolder<R, T>, ? extends RegistryEntry<R, T>> entryFactory) {
+        RegistryEntry<R, T> entry = super.accept(name, type, builder, creator, entryFactory);
 
         if (this.currentTab != null) {
             TAB_LOOKUP.put(entry, this.currentTab);

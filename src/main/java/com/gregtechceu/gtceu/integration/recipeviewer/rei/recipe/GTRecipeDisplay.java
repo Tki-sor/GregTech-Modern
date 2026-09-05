@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.gui.GTRecipeViewerWidget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import brachy.modularui.integration.rei.REIStackConverter;
 import brachy.modularui.integration.rei.recipe.ModularUIREIDisplay;
@@ -60,7 +60,7 @@ public class GTRecipeDisplay extends ModularUIREIDisplay {
     }
 
     @Override
-    public Optional<ResourceLocation> getDisplayLocation() {
+    public Optional<Identifier> getDisplayLocation() {
         return Optional.of(recipe.id);
     }
 

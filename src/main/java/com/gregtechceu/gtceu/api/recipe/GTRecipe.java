@@ -12,7 +12,7 @@ import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -35,7 +35,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     public final GTRecipeType recipeType;
     @Getter
     @Setter
-    public ResourceLocation id;
+    public Identifier id;
     public final Map<RecipeCapability<?>, List<Content>> inputs;
     public final Map<RecipeCapability<?>, List<Content>> outputs;
     public final Map<RecipeCapability<?>, List<Content>> tickInputs;
@@ -120,7 +120,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
      * Main constructor, used by {@link GTRecipeBuilder#buildRawRecipe()}
      */
     public GTRecipe(GTRecipeType recipeType,
-                    @Nullable ResourceLocation id,
+                    @Nullable Identifier id,
                     Map<RecipeCapability<?>, List<Content>> inputs,
                     Map<RecipeCapability<?>, List<Content>> outputs,
                     Map<RecipeCapability<?>, List<Content>> tickInputs,
@@ -143,7 +143,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     }
 
     public GTRecipe(GTRecipeType recipeType,
-                    @Nullable ResourceLocation id,
+                    @Nullable Identifier id,
                     Map<RecipeCapability<?>, List<Content>> inputs,
                     Map<RecipeCapability<?>, List<Content>> outputs,
                     Map<RecipeCapability<?>, List<Content>> tickInputs,

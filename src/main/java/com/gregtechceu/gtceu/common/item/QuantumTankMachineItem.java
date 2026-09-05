@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 
 import org.jetbrains.annotations.Nullable;
 

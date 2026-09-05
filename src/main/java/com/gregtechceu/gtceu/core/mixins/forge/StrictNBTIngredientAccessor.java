@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.core.mixins.forge;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

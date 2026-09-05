@@ -3,11 +3,11 @@ package com.gregtechceu.gtceu.common.data.loot;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.loot.modifier.AddTableLootModifier;
 
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.registries.RegistryObject;
 
 import com.mojang.serialization.Codec;
 

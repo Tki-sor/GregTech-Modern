@@ -7,15 +7,19 @@ import com.gregtechceu.gtceu.common.CommonProxy;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.loading.FMLLoader;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.DistExecutor;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.javafmlmod.FMLModContainer;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.data.loading.DatagenModLoader;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import dev.emi.emi.config.EmiConfig;
 import me.shedaniel.rei.api.client.REIRuntime;
@@ -28,30 +32,35 @@ import java.nio.file.Path;
 public class GTCEu {
 
     public static final String MOD_ID = "gtceu";
-    private static final ResourceLocation TEMPLATE_LOCATION = ResourceLocation.fromNamespaceAndPath(MOD_ID, "");
+    private static final Identifier TEMPLATE_LOCATION = Identifier.fromNamespaceAndPath(MOD_ID, "");
     public static final String NAME = "GregTechCEu";
     public static final Logger LOGGER = LogManager.getLogger(NAME);
 
+    /** The mod bus is the common registration boundary for GTM and its addons. */
+    public static IEventBus gtModBus;
+
     public static final Path GTCEU_FOLDER = getGameDir().resolve("gtceu");
 
-    public GTCEu() {
-        GTCEu.init();
+    public GTCEu(IEventBus modBus, FMLModContainer container) {
         GTCEuAPI.instance = this;
-        DistExecutor.unsafeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
+        gtModBus = modBus;
+        GTCEu.init();
+        CommonProxy.init(modBus);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientProxy.init(modBus));
     }
 
     public static void init() {
         LOGGER.info("{} is initializing...", NAME);
     }
 
-    public static ResourceLocation id(String path) {
+    public static Identifier id(String path) {
         if (path.isBlank()) {
             return TEMPLATE_LOCATION;
         }
 
         int i = path.indexOf(':');
         if (i > 0) {
-            return ResourceLocation.parse(path);
+            return Identifier.tryParse(path);
         } else if (i == 0) {
             path = path.substring(i + 1);
         }
@@ -91,7 +100,7 @@ public class GTCEu {
      * @return if we're running data generation
      */
     public static boolean isDataGen() {
-        return FMLLoader.getLaunchHandler().isData();
+        return DatagenModLoader.isRunningDataGen();
     }
 
     /**
@@ -108,9 +117,7 @@ public class GTCEu {
      * @return if the mod whose id is {@code modId} is loaded or not
      */
     public static boolean isModLoaded(String modId) {
-        ModList modList = ModList.get();
-        if (modList != null) return modList.isLoaded(modId);
-        else return FMLLoader.getLoadingModList().getModFileById(modId) != null;
+        return ModList.get().isLoaded(modId);
     }
 
     /**

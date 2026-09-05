@@ -31,7 +31,7 @@ public class GTOreProcessingJeiCategory extends
     private final IDrawable icon;
 
     public GTOreProcessingJeiCategory(IJeiHelpers helpers) {
-        super(v -> new OreProcessingRecipeWidget(v.material), v -> v.material.getResourceLocation());
+        super(v -> new OreProcessingRecipeWidget(v.material), v -> v.material.getIdentifier());
         this.icon = helpers.getGuiHelper().createDrawableItemStack(ChemicalHelper.get(rawOre, Iron));
     }
 

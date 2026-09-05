@@ -13,17 +13,17 @@ import com.gregtechceu.gtceu.client.renderer.machine.DynamicRender;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.resources.model.ModelIdentifier;
 import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.model.ExtendedBlockModelDeserializer;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
-import net.minecraftforge.common.util.TransformationHelper;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.model.ExtendedBlockModelDeserializer;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
+import net.neoforged.neoforge.common.util.TransformationHelper;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -40,11 +40,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-@Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = GTCEu.MOD_ID, value = Dist.CLIENT)
 public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> {
 
     public static final MachineModelLoader INSTANCE = new MachineModelLoader();
-    public static final ResourceLocation ID = GTCEu.id("machine");
+    public static final Identifier ID = GTCEu.id("machine");
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(BlockModel.class, new ExtendedBlockModelDeserializer())
             .registerTypeAdapter(BlockElement.class, new BlockElement.Deserializer())
@@ -70,7 +70,7 @@ public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> 
     @Override
     public @Nullable UnbakedMachineModel read(JsonObject json,
                                               JsonDeserializationContext context) throws JsonParseException {
-        ResourceLocation machineId = ResourceLocation.parse(GsonHelper.getAsString(json, "machine"));
+        Identifier machineId = Identifier.parse(GsonHelper.getAsString(json, "machine"));
         MachineDefinition definition = GTRegistries.MACHINES.get(machineId);
         if (definition == null) return null;
 
@@ -102,7 +102,7 @@ public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> 
             possibleStates.forEach((state) -> statesToModels.put(state, multiPart));
         }
 
-        Map<ModelResourceLocation, MachineRenderState> modelsToStates = new HashMap<>();
+        Map<ModelIdentifier, MachineRenderState> modelsToStates = new HashMap<>();
         possibleStates.forEach((state) -> {
             modelsToStates.put(stateToModelLocation(machineId, state), state);
         });
@@ -157,12 +157,12 @@ public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> 
                 replaceableTextures.add(entry);
             }
         }
-        Map<String, ResourceLocation> textureOverrides = new HashMap<>();
+        Map<String, Identifier> textureOverrides = new HashMap<>();
         JsonObject overrideJson = GsonHelper.getAsJsonObject(json, "texture_overrides", null);
         if (overrideJson != null) {
             for (var entry : overrideJson.asMap().entrySet()) {
                 String value = GsonHelper.convertToString(entry.getValue(), entry.getKey());
-                textureOverrides.put(entry.getKey(), ResourceLocation.parse(value));
+                textureOverrides.put(entry.getKey(), Identifier.parse(value));
             }
         }
 
@@ -171,7 +171,7 @@ public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> 
     }
 
     protected static void resolveStateModels(UnbakedMachineModel model,
-                                             Function<ResourceLocation, UnbakedModel> resolver) {
+                                             Function<Identifier, UnbakedModel> resolver) {
         UnbakedModel missingModel = resolver.apply(ModelBakery.MISSING_MODEL_LOCATION);
 
         final MultiPartUnbakedModel multiPart = model.getMultiPart();
@@ -233,15 +233,15 @@ public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> 
         return property.getValue(value).orElse(null);
     }
 
-    public static ModelResourceLocation stateToModelLocation(ResourceLocation location, MachineRenderState state) {
-        return new ModelResourceLocation(location, BlockModelShaper.statePropertiesToString(state.getValues()));
+    public static ModelIdentifier stateToModelLocation(Identifier location, MachineRenderState state) {
+        return new ModelIdentifier(location, BlockModelShaper.statePropertiesToString(state.getValues()));
     }
 
-    public static Either<ResourceLocation, UnbakedModel> parseVariant(JsonElement value,
-                                                                      JsonDeserializationContext context) throws JsonParseException {
+    public static Either<Identifier, UnbakedModel> parseVariant(JsonElement value,
+                                                                JsonDeserializationContext context) throws JsonParseException {
         if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
             String modelName = value.getAsString();
-            return Either.left(ResourceLocation.parse(modelName));
+            return Either.left(Identifier.parse(modelName));
         } else {
             return Either.right(context.deserialize(value, BlockModel.class));
         }

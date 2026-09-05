@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkEvent;
 
 import lombok.AllArgsConstructor;
 

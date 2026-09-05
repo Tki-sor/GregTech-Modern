@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -54,7 +54,7 @@ public class GTMaterialItems {
 
     // Reference Tables
     public static Table<TagPrefix, Material, ItemEntry<? extends Item>> MATERIAL_ITEMS;
-    public static final Table<Material, GTToolType, ItemProviderEntry<IGTTool>> TOOL_ITEMS = ArrayTable.create(
+    public static final Table<Material, GTToolType, ItemProviderEntry<IGTTool, IGTTool>> TOOL_ITEMS = ArrayTable.create(
             GTRegistries.MATERIALS.values().stream()
                     .filter(mat -> mat.hasProperty(PropertyKey.TOOL))
                     .toList(),
@@ -115,7 +115,7 @@ public class GTMaterialItems {
     @SuppressWarnings("unchecked")
     private static void generateTool(Material material, GTToolType toolType, GTRegistrate registrate) {
         var tier = material.getToolTier();
-        TOOL_ITEMS.put(material, toolType, (ItemProviderEntry<IGTTool>) (ItemProviderEntry<?>) registrate
+        TOOL_ITEMS.put(material, toolType, (ItemProviderEntry<IGTTool, IGTTool>) (ItemProviderEntry<?, ?>) registrate
                 .item(toolType.idFormat.formatted(tier.material.getName()),
                         p -> toolType.constructor.apply(toolType, tier, material,
                                 toolType.toolDefinition, p).asItem())

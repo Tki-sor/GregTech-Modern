@@ -6,13 +6,13 @@ import com.gregtechceu.gtceu.api.GTValues;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.IIngredientSerializer;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  */
 public class IntProviderIngredient extends Ingredient implements IRangedIngredient<SizedIngredient> {
 
-    public static final ResourceLocation TYPE = GTCEu.id("int_provider");
+    public static final Identifier TYPE = GTCEu.id("int_provider");
     public static final ItemStack[] EMPTY_STACK_ARRAY = new ItemStack[0];
 
     @Getter

@@ -4,9 +4,9 @@ import com.gregtechceu.gtceu.api.cosmetics.CapeRegistry;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.network.NetworkDirection;
+import net.neoforged.neoforge.network.NetworkEvent;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -18,11 +18,11 @@ import java.util.UUID;
 public class SPacketNotifyCapeChange implements GTNetwork.INetPacket {
 
     public UUID uuid;
-    public ResourceLocation cape;
+    public Identifier cape;
 
     public SPacketNotifyCapeChange(FriendlyByteBuf buf) {
         uuid = buf.readUUID();
-        cape = buf.readBoolean() ? buf.readResourceLocation() : null;
+        cape = buf.readBoolean() ? buf.readIdentifier() : null;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class SPacketNotifyCapeChange implements GTNetwork.INetPacket {
         buf.writeUUID(this.uuid);
         buf.writeBoolean(this.cape != null);
         if (this.cape != null) {
-            buf.writeResourceLocation(this.cape);
+            buf.writeIdentifier(this.cape);
         }
     }
 

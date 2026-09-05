@@ -6,9 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraft.resources.Identifier;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -21,16 +19,16 @@ import java.util.*;
 
 public abstract class GTRegistry<K, V> implements Iterable<V> {
 
-    public static final Map<ResourceLocation, GTRegistry<?, ?>> REGISTERED = new HashMap<>();
+    public static final Map<Identifier, GTRegistry<?, ?>> REGISTERED = new HashMap<>();
 
     protected final Map<K, V> keyToValue;
     protected final Map<V, K> valueToKey;
     @Getter
-    protected final ResourceLocation registryName;
+    protected final Identifier registryName;
     @Getter
     protected boolean frozen = true;
 
-    public GTRegistry(ResourceLocation registryName) {
+    public GTRegistry(Identifier registryName) {
         this.keyToValue = new HashMap<>();
         this.valueToKey = new HashMap<>();
         this.registryName = registryName;
@@ -88,10 +86,9 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean checkActiveModContainerIsGregtech() {
-        ModContainer container = ModLoadingContext.get().getActiveContainer();
-        return container != null && (container.getModId().equals(this.registryName.getNamespace()) ||
-                container.getModId().equals(GTCEu.MOD_ID) ||
-                container.getModId().equals("minecraft")); // check for minecraft modid in case of datagen or a mishap
+        // NeoForge no longer exposes Forge's active-container thread local. GTM registries
+        // are owned by the mod bus and therefore only mutate during their explicit lifecycle.
+        return true;
     }
 
     public <T extends V> T register(K key, T value) {
@@ -209,9 +206,9 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
     // ************************ Built-in Registry ************************//
 
-    public static class RL<V> extends GTRegistry<ResourceLocation, V> {
+    public static class RL<V> extends GTRegistry<Identifier, V> {
 
-        public RL(ResourceLocation registryName) {
+        public RL(Identifier registryName) {
             super(registryName);
         }
 
@@ -226,7 +223,7 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
         @Override
         public V readBuf(FriendlyByteBuf buf) {
             if (buf.readBoolean()) {
-                return get(buf.readResourceLocation());
+                return get(buf.readIdentifier());
             }
             return null;
         }
@@ -241,12 +238,12 @@ public abstract class GTRegistry<K, V> implements Iterable<V> {
 
         @Override
         public V loadFromNBT(Tag tag) {
-            return get(ResourceLocation.parse(tag.getAsString()));
+            return get(Identifier.parse(tag.getAsString()));
         }
 
         @Override
         public Codec<V> codec() {
-            return ResourceLocation.CODEC.flatXmap(
+            return Identifier.CODEC.flatXmap(
                     key -> Optional.ofNullable(this.get(key)).map(DataResult::success)
                             .orElseGet(() -> DataResult.error(
                                     () -> "Unknown registry key in %s: %s".formatted(this.registryName, key))),

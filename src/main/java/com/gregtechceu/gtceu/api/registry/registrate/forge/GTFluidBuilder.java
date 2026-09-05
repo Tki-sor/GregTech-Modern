@@ -11,7 +11,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BucketItem;
@@ -21,14 +21,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.SoundActions;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.DistExecutor;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.SoundActions;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.ForgeRegistries;
 
 import com.google.common.base.Preconditions;
 import com.tterrag.registrate.AbstractRegistrate;
@@ -81,14 +81,14 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluid.Flowing, P
     public interface FluidTypeFactory {
 
         FluidType create(String langKey, Material material, FluidType.Properties properties,
-                         ResourceLocation stillTexture, ResourceLocation flowingTexture, int color);
+                         Identifier stillTexture, Identifier flowingTexture, int color);
     }
 
     private final String sourceName, bucketName;
     private final Material material;
     private final String langKey;
 
-    private final ResourceLocation stillTexture, flowingTexture;
+    private final Identifier stillTexture, flowingTexture;
 
     @Nullable
     private final NonNullSupplier<FluidType> fluidType;
@@ -111,7 +111,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluid.Flowing, P
     private final List<TagKey<Fluid>> tags = new ArrayList<>();
 
     public GTFluidBuilder(AbstractRegistrate<?> owner, P parent, Material material, String name, String langKey,
-                          BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+                          BuilderCallback callback, Identifier stillTexture, Identifier flowingTexture,
                           GTFluidBuilder.FluidTypeFactory typeFactory) {
         super(owner, parent, "flowing_" + name, callback, ForgeRegistries.Keys.FLUIDS);
         this.sourceName = name;
@@ -261,7 +261,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluid.Flowing, P
 
     private FluidType.Properties makeTypeProperties() {
         FluidType.Properties properties = FluidType.Properties.create();
-        RegistryEntry<Block> block = getOwner().getOptional(sourceName, ForgeRegistries.Keys.BLOCKS);
+        Optional<RegistryEntry<Block, Block>> block = getOwner().getOptional(sourceName, ForgeRegistries.Keys.BLOCKS);
         this.typeProperties.accept(properties);
 
         // Force the translation key after the user callback runs
@@ -318,7 +318,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluid.Flowing, P
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public RegistryEntry<GTFluid.Flowing> register() {
+    public RegistryEntry<Fluid, GTFluid.Flowing> register() {
         // Check the fluid has a type.
         if (this.fluidType != null) {
             // Register the type.
@@ -358,7 +358,7 @@ public class GTFluidBuilder<P> extends AbstractBuilder<Fluid, GTFluid.Flowing, P
     }
 
     public static FluidType defaultFluidType(String langKey, Material material, FluidType.Properties properties,
-                                             ResourceLocation stillTexture, ResourceLocation flowingTexture,
+                                             Identifier stillTexture, Identifier flowingTexture,
                                              int color) {
         return new FluidType(properties) {
 

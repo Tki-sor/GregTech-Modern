@@ -60,19 +60,16 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.IntersectionIngredient;
-import net.minecraftforge.common.crafting.PartialNBTIngredient;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
-import net.minecraftforge.event.AddPackFindersEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.ModLoader;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModLoader;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.crafting.IntersectionIngredient;
+import net.neoforged.neoforge.common.crafting.PartialNBTIngredient;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import brachy.modularui.factory.GuiManager;
 import com.google.common.collect.Multimaps;
@@ -85,9 +82,7 @@ import java.util.List;
 
 public class CommonProxy {
 
-    public CommonProxy() {
-        // used for forge events (ClientProxy + CommonProxy)
-        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    private CommonProxy(IEventBus eventBus) {
         eventBus.register(this);
         ConfigHolder.init();
         GTCEuAPI.initializeHighTier();
@@ -117,7 +112,13 @@ public class CommonProxy {
         eventBus.addListener(AlloyBlastPropertyAddition::addAlloyBlastProperties);
     }
 
-    public static void init() {
+    public static void init(IEventBus modBus) {
+        GTRegistries.init(modBus);
+        CommonProxy proxy = new CommonProxy(modBus);
+        proxy.initContent(modBus);
+    }
+
+    private void initContent(IEventBus modBus) {
         GTCEu.LOGGER.info("GTCEu common proxy init!");
         GTNetwork.init();
 
@@ -144,7 +145,6 @@ public class CommonProxy {
         GTCovers.init();
         GTCreativeModeTabs.init();
 
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         GTMenuTypes.init(modBus);
 
         GTBlocks.init();
@@ -179,9 +179,6 @@ public class CommonProxy {
         FusionReactorMachine.registerFusionTier(GTValues.UV, " (MKIII)");
     }
 
-    @SubscribeEvent
-    public void preInit(FMLConstructModEvent event) {}
-
     private static void initMaterials() {
         // First, register CEu Materials
         GTRegistries.MATERIALS.unfreeze();
@@ -191,7 +188,7 @@ public class CommonProxy {
         // Then, register addon Materials
         GTCEu.LOGGER.info("Registering addon Materials");
         MaterialEvent materialEvent = new MaterialEvent();
-        ModLoader.get().postEvent(materialEvent);
+        ModLoader.postEventWrapContainerInModOrder(materialEvent);
         if (GTCEu.Mods.isKubeJSLoaded()) {
             KJSEventWrapper.materialRegistry();
         }
@@ -199,7 +196,7 @@ public class CommonProxy {
         // Fire Post-Material event, intended for when Materials need to be iterated over in-full before freezing
         // Block entirely new Materials from being added in the Post event
         GTRegistries.MATERIALS.closeRegistry();
-        ModLoader.get().postEvent(new PostMaterialEvent());
+        ModLoader.postEventWrapContainerInModOrder(new PostMaterialEvent());
         if (GTCEu.Mods.isKubeJSLoaded()) {
             KJSEventWrapper.materialModification();
         }
@@ -267,20 +264,8 @@ public class CommonProxy {
     }
 
     @SubscribeEvent
-    public void modConstruct(FMLConstructModEvent event) {
-        // this is done to delay initialization of content to be after KJS has set up.
-        event.enqueueWork(CommonProxy::init);
-    }
-
-    @SubscribeEvent
     public void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            CraftingHelper.register(SizedIngredient.TYPE, SizedIngredient.SERIALIZER);
-            CraftingHelper.register(IntCircuitIngredient.TYPE, IntCircuitIngredient.SERIALIZER);
-            CraftingHelper.register(IntProviderIngredient.TYPE, IntProviderIngredient.SERIALIZER);
-            CraftingHelper.register(NBTPredicateIngredient.TYPE, NBTPredicateIngredient.Serializer.INSTANCE);
-            CraftingHelper.register(FluidContainerIngredient.TYPE, FluidContainerIngredient.SERIALIZER);
-
             // register the map ingredient converters for all of our ingredients
             MapIngredientTypeManager.registerMapIngredient(FluidIngredient.class, FluidTagMapIngredient::from);
             MapIngredientTypeManager.registerMapIngredient(FluidIngredient.class, FluidStackMapIngredient::from);

@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import net.minecraft.Util;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Recipe;
 
 import brachy.modularui.api.widget.IWidget;
@@ -29,7 +29,7 @@ public abstract class GTRecipeJEICategory<T extends Recipe<?>>
     public static final Function<GTRecipeCategory, RecipeType<GTRecipe>> TYPES = Util
             .memoize(c -> new RecipeType<>(c.registryKey, GTRecipe.class));
 
-    protected GTRecipeJEICategory(Function<T, IWidget> wrapperFunction, Function<T, ResourceLocation> recipeIdGetter) {
+    protected GTRecipeJEICategory(Function<T, IWidget> wrapperFunction, Function<T, Identifier> recipeIdGetter) {
         super(wrapperFunction, recipeIdGetter);
     }
 

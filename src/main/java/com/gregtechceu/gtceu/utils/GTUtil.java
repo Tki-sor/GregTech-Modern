@@ -28,7 +28,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BiomeTags;
@@ -47,11 +47,11 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
@@ -589,7 +589,7 @@ public class GTUtil {
     }
 
     public static CompoundTag saveItemStack(ItemStack itemStack, CompoundTag compoundTag) {
-        ResourceLocation resourceLocation = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+        Identifier resourceLocation = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
         compoundTag.putString("id", resourceLocation.toString());
         compoundTag.putInt("Count", itemStack.getCount());
         if (itemStack.getTag() != null) {
@@ -601,7 +601,7 @@ public class GTUtil {
 
     public static ItemStack loadItemStack(CompoundTag compoundTag) {
         try {
-            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(compoundTag.getString("id")));
+            Item item = BuiltInRegistries.ITEM.get(Identifier.parse(compoundTag.getString("id")));
             int count = compoundTag.getInt("Count");
             ItemStack stack = new ItemStack(item, count);
             if (compoundTag.contains("tag", Tag.TAG_COMPOUND)) {
@@ -743,7 +743,7 @@ public class GTUtil {
                 Shapes::or);
     }
 
-    public static boolean resourceExists(@NotNull ResourceLocation rs) {
+    public static boolean resourceExists(@NotNull Identifier rs) {
         if (GTCEu.isClientSide()) {
             return Minecraft.getInstance().getResourceManager().getResource(rs).isPresent();
         } else {
@@ -751,11 +751,11 @@ public class GTUtil {
         }
     }
 
-    public static boolean textureResourceExists(@NotNull ResourceLocation location) {
+    public static boolean textureResourceExists(@NotNull Identifier location) {
         return resourceExists(GTDynamicResourcePack.TEXTURE_ID_CONVERTER.idToFile(location));
     }
 
-    public static boolean modelResourceExists(@NotNull ResourceLocation location) {
+    public static boolean modelResourceExists(@NotNull Identifier location) {
         return resourceExists(GTDynamicResourcePack.MODEL_ID_CONVERTER.idToFile(location));
     }
 

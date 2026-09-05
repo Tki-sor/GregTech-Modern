@@ -2,13 +2,13 @@ package com.gregtechceu.gtceu.common.commands.arguments;
 
 import com.gregtechceu.gtceu.api.registry.GTRegistry;
 
+import net.minecraft.IdentifierException;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.ResourceLocationException;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.LiteralMessage;
@@ -51,8 +51,8 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
     @SuppressWarnings("unchecked")
     public V parse(StringReader reader) throws CommandSyntaxException {
         String id = readId(reader);
-        if (ResourceLocation.class.isAssignableFrom(keyClass)) {
-            K loc = (K) ResourceLocation.parse(id);
+        if (Identifier.class.isAssignableFrom(keyClass)) {
+            K loc = (K) Identifier.parse(id);
             if (!registry.containsKey(loc)) {
                 throw new SimpleCommandExceptionType(new LiteralMessage("Failed to find object" + id + " in registry"))
                         .createWithContext(reader);
@@ -74,7 +74,7 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
     public static String readId(StringReader reader) throws CommandSyntaxException {
         int cursor = reader.getCursor();
 
-        while (reader.canRead() && ResourceLocation.isAllowedInResourceLocation(reader.peek())) {
+        while (reader.canRead() && Identifier.isAllowedInIdentifier(reader.peek())) {
             reader.skip();
         }
 
@@ -82,7 +82,7 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
 
         try {
             return s;
-        } catch (ResourceLocationException var4) {
+        } catch (IdentifierException var4) {
             reader.setCursor(cursor);
             throw ERROR_INVALID.createWithContext(reader);
         }
@@ -128,16 +128,16 @@ public class GTRegistryArgument<K, V> implements ArgumentType<V> {
                             ArgumentTypeInfo<GTRegistryArgument<K, V>, GTRegistryArgument.Info<K, V>.Template> {
 
         public void serializeToNetwork(GTRegistryArgument.Info<K, V>.Template template, FriendlyByteBuf buffer) {
-            buffer.writeResourceLocation(template.registryKey.getRegistryName());
-            buffer.writeBoolean(ResourceLocation.class.isAssignableFrom(template.keyClass));
+            buffer.writeIdentifier(template.registryKey.getRegistryName());
+            buffer.writeBoolean(Identifier.class.isAssignableFrom(template.keyClass));
         }
 
         @SuppressWarnings("unchecked")
         public GTRegistryArgument.Info<K, V>.Template deserializeFromNetwork(FriendlyByteBuf buffer) {
-            ResourceLocation resourceLocation = buffer.readResourceLocation();
+            Identifier resourceLocation = buffer.readIdentifier();
             Class<K> keyClass = (Class<K>) String.class;
             if (buffer.readBoolean()) {
-                keyClass = (Class<K>) ResourceLocation.class;
+                keyClass = (Class<K>) Identifier.class;
             }
             // noinspection unchecked
             return new GTRegistryArgument.Info<K, V>.Template(

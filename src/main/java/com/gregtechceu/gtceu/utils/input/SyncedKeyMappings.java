@@ -3,9 +3,9 @@ package com.gregtechceu.gtceu.utils.input;
 import com.gregtechceu.gtceu.GTCEu;
 
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.ModLoader;
+import net.neoforged.fml.ModLoader;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.neoforge.common.NeoForge;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -44,9 +44,9 @@ public final class SyncedKeyMappings {
 
     public static void init() {
         if (GTCEu.isClientSide()) {
-            MinecraftForge.EVENT_BUS.register(SyncedKeyMapping.class);
+            NeoForge.EVENT_BUS.register(SyncedKeyMapping.class);
         }
-        ModLoader.get().postEvent(new SyncedKeyMappingEvent());
+        ModLoader.postEventWrapContainerInModOrder(new SyncedKeyMappingEvent());
     }
 
     private SyncedKeyMappings() {}

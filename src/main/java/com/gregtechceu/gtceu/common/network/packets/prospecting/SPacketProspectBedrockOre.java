@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.common.network.packets.prospecting;
 import com.gregtechceu.gtceu.api.item.component.prospector.ProspectorMode;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkEvent;
 
 public class SPacketProspectBedrockOre extends SPacketProspect<ProspectorMode.BedrockOreInfo> {
 

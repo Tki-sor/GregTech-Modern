@@ -14,7 +14,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -35,7 +35,7 @@ import java.util.function.*;
 public class GTRecipeType implements RecipeType<GTRecipe> {
 
     @Getter
-    public final ResourceLocation registryName;
+    public final Identifier registryName;
     public final String group;
     public final Object2IntSortedMap<RecipeCapability<?>> maxInputs = new Object2IntAVLTreeMap<>(
             RecipeCapability.COMPARATOR);
@@ -89,7 +89,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
     @Setter
     private GTRecipeTypeUILayout uiLayout;
 
-    public GTRecipeType(ResourceLocation registryName, String group, RecipeType<?>... proxyRecipes) {
+    public GTRecipeType(Identifier registryName, String group, RecipeType<?>... proxyRecipes) {
         this.registryName = registryName;
         this.group = group;
         this.category = GTRecipeCategory.registerDefault(this);
@@ -210,11 +210,11 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return this;
     }
 
-    public GTRecipeBuilder recipeBuilder(ResourceLocation id) {
+    public GTRecipeBuilder recipeBuilder(Identifier id) {
         return recipeBuilder.copy(id);
     }
 
-    public GTRecipeBuilder recipeBuilder(ResourceLocation id, Object... append) {
+    public GTRecipeBuilder recipeBuilder(Identifier id, Object... append) {
         if (append.length > 0) {
             String toAppend = Arrays.stream(append)
                     .map(Object::toString)
@@ -266,7 +266,7 @@ public class GTRecipeType implements RecipeType<GTRecipe> {
         return false;
     }
 
-    public GTRecipe toGTrecipe(ResourceLocation id, Recipe<?> recipe) {
+    public GTRecipe toGTrecipe(Identifier id, Recipe<?> recipe) {
         var builder = recipeBuilder(id);
         for (var ingredient : recipe.getIngredients()) {
             builder.inputItems(ingredient);

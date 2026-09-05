@@ -21,7 +21,7 @@ import com.gregtechceu.gtceu.integration.recipeviewer.emi.recipe.GTRecipeEMICate
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import appeng.menu.me.items.PatternEncodingTermMenu;
 import de.mari_023.ae2wtlib.wet.WETMenu;

@@ -28,7 +28,6 @@ import com.gregtechceu.gtceu.client.renderer.machine.impl.*;
 import com.gregtechceu.gtceu.client.renderer.machine.impl.BoilerMultiPartRender;
 import com.gregtechceu.gtceu.client.util.ModelEventHelper;
 import com.gregtechceu.gtceu.common.CommonEventListener;
-import com.gregtechceu.gtceu.common.CommonProxy;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.data.models.GTModels;
 import com.gregtechceu.gtceu.common.entity.GTBoat;
@@ -58,35 +57,31 @@ import net.minecraft.client.model.ChestBoatModel;
 import net.minecraft.client.renderer.blockentity.HangingSignRenderer;
 import net.minecraft.client.renderer.blockentity.SignRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.client.event.*;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.common.NeoForge;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.Getter;
 
-public class ClientProxy extends CommonProxy {
+public class ClientProxy {
 
     @Getter
     private static final Timer timer60Fps = new Timer(60f, 0);
 
-    public static final BiMap<ResourceLocation, GTOreDefinition> CLIENT_ORE_VEINS = HashBiMap.create();
-    public static final BiMap<ResourceLocation, BedrockFluidDefinition> CLIENT_FLUID_VEINS = HashBiMap.create();
-    public static final BiMap<ResourceLocation, BedrockOreDefinition> CLIENT_BEDROCK_ORE_VEINS = HashBiMap.create();
+    public static final BiMap<Identifier, GTOreDefinition> CLIENT_ORE_VEINS = HashBiMap.create();
+    public static final BiMap<Identifier, BedrockFluidDefinition> CLIENT_FLUID_VEINS = HashBiMap.create();
+    public static final BiMap<Identifier, BedrockOreDefinition> CLIENT_BEDROCK_ORE_VEINS = HashBiMap.create();
 
-    public ClientProxy() {
-        super();
-        init();
-    }
-
-    public static void init() {
+    public static void init(IEventBus modBus) {
+        modBus.register(ClientProxy.class);
         if (!GTCEu.isDataGen()) {
 
             ClientCacheManager.registerClientCache(GTClientCache.instance, "gtceu");
@@ -101,9 +96,9 @@ public class ClientProxy extends CommonProxy {
         initializeDynamicRenders();
         ModelEventHelper.initInternalAssetReloadListeners();
 
-        MinecraftForge.EVENT_BUS.register(GTParticleManager.INSTANCE);
+        NeoForge.EVENT_BUS.register(GTParticleManager.INSTANCE);
         GTGuiTextures.init();
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(GTGuiTheme::onReloadThemes);
+        modBus.addListener(GTGuiTheme::onReloadThemes);
     }
 
     @SubscribeEvent
@@ -130,7 +125,7 @@ public class ClientProxy extends CommonProxy {
 
     @SubscribeEvent
     public void onRegisterItemDecorations(RegisterItemDecorationsEvent event) {
-        for (Item item : ForgeRegistries.ITEMS) {
+        for (Item item : BuiltInRegistries.ITEM) {
             if (item instanceof IComponentItem) {
                 event.register(item, GTComponentItemDecorator.INSTANCE);
             }

@@ -11,7 +11,7 @@ import com.gregtechceu.gtceu.common.data.item.GTToolActions;
 import com.gregtechceu.gtceu.common.item.tool.behavior.*;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -24,8 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
+import net.neoforged.neoforge.common.ToolAction;
+import net.neoforged.neoforge.common.ToolActions;
 
 import com.google.common.collect.Sets;
 import lombok.Getter;
@@ -571,7 +571,7 @@ public class GTToolType {
     public final List<TagKey<Item>> craftingTags;
     public final List<TagKey<Block>> harvestTags;
     public final Set<ToolAction> defaultAbilities;
-    public final ResourceLocation modelLocation;
+    public final Identifier modelLocation;
     public final Set<String> toolClassNames;
     public final Set<GTToolType> toolClasses;
     @Nullable
@@ -587,7 +587,7 @@ public class GTToolType {
                       Set<GTToolType> toolClasses, ToolConstructor constructor, IGTToolDefinition toolDefinition,
                       List<TagKey<Item>> itemTags, List<TagKey<Item>> matchTags, List<TagKey<Item>> craftingTags,
                       List<TagKey<Block>> harvestTags, Set<ToolAction> defaultAbilities,
-                      Set<String> toolClassNames, ResourceLocation modelLocation,
+                      Set<String> toolClassNames, Identifier modelLocation,
                       @Nullable SoundEntry soundEntry, boolean playSoundOnBlockDestroy,
                       int electricTier, long materialAmount) {
         this.name = name;
@@ -663,7 +663,7 @@ public class GTToolType {
         @Setter
         private ToolConstructor constructor = GTToolItem::new;
         @Setter
-        private ResourceLocation modelLocation;
+        private Identifier modelLocation;
         private SoundEntry sound;
         private boolean playSoundOnBlockDestroy;
 

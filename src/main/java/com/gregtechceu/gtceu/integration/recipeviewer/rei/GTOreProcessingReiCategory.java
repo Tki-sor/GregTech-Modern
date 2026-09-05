@@ -74,7 +74,7 @@ public class GTOreProcessingReiCategory extends
     public static class GTOreProcessingDisplay extends ModularUIREIDisplay {
 
         public GTOreProcessingDisplay(Material material) {
-            super(material.getResourceLocation(), () -> new OreProcessingRecipeWidget(material), CATEGORY);
+            super(material.getIdentifier(), () -> new OreProcessingRecipeWidget(material), CATEGORY);
         }
     }
 }

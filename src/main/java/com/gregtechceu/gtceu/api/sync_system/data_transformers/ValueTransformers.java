@@ -19,13 +19,13 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.*;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -183,8 +183,8 @@ public final class ValueTransformers {
         registerTransformer(MonitorGroup.class, new MonitorGroupTransformer());
         registerCodecTransformer(ConsumedInputsData.class, ConsumedInputsData.CODEC);
 
-        registerCodecTransformer(GTRecipeType.class, ResourceLocation.CODEC.xmap(GTRegistries.RECIPE_TYPES::get, GTRecipeType::getRegistryName));
-        registerCodecTransformer(Material.class, ResourceLocation.CODEC.xmap(GTRegistries.MATERIALS::get, Material::getResourceLocation));
+        registerCodecTransformer(GTRecipeType.class, Identifier.CODEC.xmap(GTRegistries.RECIPE_TYPES::get, GTRecipeType::getRegistryName));
+        registerCodecTransformer(Material.class, Identifier.CODEC.xmap(GTRegistries.MATERIALS::get, Material::getIdentifier));
         // spotless:on
     }
 }

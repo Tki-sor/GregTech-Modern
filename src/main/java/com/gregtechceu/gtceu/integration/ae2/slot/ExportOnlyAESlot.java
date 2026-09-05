@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.integration.ae2.slot;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import appeng.api.stacks.GenericStack;
 import lombok.Getter;
