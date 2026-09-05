@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MathUtils {
 

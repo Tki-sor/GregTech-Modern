@@ -141,7 +141,7 @@ public interface Interactable {
      */
     @OnlyIn(Dist.CLIENT)
     static boolean hasControlDown() {
-        return Screen.hasControlDown();
+        return Minecraft.getInstance().hasControlDown();
     }
 
     /**
@@ -149,7 +149,7 @@ public interface Interactable {
      */
     @OnlyIn(Dist.CLIENT)
     static boolean hasShiftDown() {
-        return Screen.hasShiftDown();
+        return Minecraft.getInstance().hasShiftDown();
     }
 
     /**
@@ -157,7 +157,7 @@ public interface Interactable {
      */
     @OnlyIn(Dist.CLIENT)
     static boolean hasAltDown() {
-        return Screen.hasAltDown();
+        return Minecraft.getInstance().hasAltDown();
     }
 
     static boolean isModifierActive(int mod, int key) {
@@ -182,7 +182,7 @@ public interface Interactable {
      */
     @OnlyIn(Dist.CLIENT)
     static boolean isKeyPressed(int key) {
-        return InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), key);
+        return InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), key);
     }
 
     /**

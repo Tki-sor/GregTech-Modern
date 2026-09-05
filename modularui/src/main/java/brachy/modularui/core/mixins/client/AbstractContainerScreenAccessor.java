@@ -77,6 +77,4 @@ public interface AbstractContainerScreenAccessor {
     @Invoker
     void invokeRenderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY);
 
-    @Invoker
-    void invokeRenderBg(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY);
 }

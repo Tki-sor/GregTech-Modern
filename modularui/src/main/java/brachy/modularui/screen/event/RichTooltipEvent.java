@@ -85,15 +85,35 @@ public class RichTooltipEvent {
         }
     }
 
-    public static class Color extends RenderTooltipEvent.Color {
+    public static class Color extends Event implements ICancellableEvent {
 
         @Getter
         private final IRichTextBuilder<?> tooltip;
 
+        @Getter private final ItemStack itemStack;
+        @Getter private final GuiGraphicsExtractor graphics;
+        @Getter private final int x;
+        @Getter private final int y;
+        @Getter private final Font font;
+        @Getter private final List<ClientTooltipComponent> components;
+        @Getter @Setter private int backgroundStart;
+        @Getter @Setter private int backgroundEnd;
+        @Getter @Setter private int borderStart;
+        @Getter @Setter private int borderEnd;
+
         public Color(@NotNull ItemStack stack, @NotNull GuiGraphicsExtractor graphics,
                      int x, int y, @NotNull Font font, int background, int borderStart, int borderEnd,
                      @NotNull List<ClientTooltipComponent> components, IRichTextBuilder<?> tooltip) {
-            super(stack, graphics, x, y, font, background, borderStart, borderEnd, components);
+            this.itemStack = stack;
+            this.graphics = graphics;
+            this.x = x;
+            this.y = y;
+            this.font = font;
+            this.backgroundStart = background;
+            this.backgroundEnd = background;
+            this.borderStart = borderStart;
+            this.borderEnd = borderEnd;
+            this.components = components;
             this.tooltip = tooltip;
         }
     }

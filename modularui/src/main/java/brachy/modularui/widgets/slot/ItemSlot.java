@@ -97,7 +97,6 @@ public class ItemSlot extends Widget<ItemSlot> implements IVanillaSlot, Interact
     @Override
     public void draw(ModularGuiContext context, WidgetThemeEntry<?> widgetTheme) {
         if (this.syncHandler == null) return;
-        Lighting.setupFor3DItems();
         drawSlot(context, getSlot());
         drawOverlay(context);
     }
@@ -253,7 +252,7 @@ public class ItemSlot extends Widget<ItemSlot> implements IVanillaSlot, Interact
 
                     int maxSize = Math.min(slotStack.getMaxStackSize(), slot.getMaxStackSize(slotStack));
                     amount = slot.getItem().getCount();
-                    amount += AbstractContainerMenu.getQuickCraftPlaceCount(acc.getQuickCraftSlots(), acc.getQuickCraftingType(), slotStack);
+                    amount += AbstractContainerMenu.getQuickCraftPlaceCount(acc.getQuickCraftingType(), acc.getQuickCraftSlots().size(), slotStack);
                     if (amount > maxSize) {
                         amount = maxSize;
                         format = ChatFormatting.YELLOW.toString();
@@ -276,10 +275,9 @@ public class ItemSlot extends Widget<ItemSlot> implements IVanillaSlot, Interact
             }
 
             if (!slotStack.isEmpty()) {
-                RenderSystem.enableDepthTest();
                 // render the item itself
 
-                context.getGraphics().renderItem(slotStack, 1, 1);
+                context.getGraphics().item(slotStack, 1, 1, (int) z);
                 if (amount < 0) {
                     amount = slotStack.getCount();
                 }
@@ -288,10 +286,9 @@ public class ItemSlot extends Widget<ItemSlot> implements IVanillaSlot, Interact
                 int cachedCount = slotStack.getCount();
                 slotStack.setCount(1); // required to not render the amount overlay
                 // render other overlays like durability bar
-                context.getGraphics().renderItemDecorations(((ScreenAccessor) screen).getFont(), slotStack, 1, 1,
+                context.getGraphics().itemDecorations(((ScreenAccessor) screen).getFont(), slotStack, 1, 1,
                         null);
                 slotStack.setCount(cachedCount);
-                RenderSystem.disableDepthTest();
             }
         }
         context.graphicsPose().popPose();

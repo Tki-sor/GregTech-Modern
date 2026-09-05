@@ -72,7 +72,7 @@ public class RichTextCompiler {
             } else if (o instanceof Text key) {
                 if (key == Text.EMPTY) continue;
                 if (key == Text.SPACE) {
-                    MutableComponent mc = key.get();
+                    Component mc = key.get();
                     addLineElement(SPACE);
                     this.x += this.fr.width(mc);
                     continue;

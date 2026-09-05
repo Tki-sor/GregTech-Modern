@@ -3,7 +3,7 @@ package brachy.modularui.utils.sides;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeAccess;
 
 /**
  * Internal helper class acting as a safeguard for accessing client-only methods
@@ -16,8 +16,8 @@ import net.minecraft.world.item.crafting.RecipeManager;
         return Minecraft.getInstance().getConnection().registryAccess();
     }
 
-    static RecipeManager getClientRecipeManager() {
-        return Minecraft.getInstance().getConnection().getRecipeManager();
+    static RecipeAccess getClientRecipeManager() {
+        return Minecraft.getInstance().getConnection().recipes();
     }
 
     static PotionBrewing getClientPotionBrewing() {

@@ -74,7 +74,7 @@ public class DynamicComponent implements Component, IDrawable {
 
     @Override
     public TextWidget<?> asWidget() {
-        return new TextWidget<>(this::getComp);
+        return new TextWidget<>(() -> ModularComponent.of(getComp()));
     }
 
     public DynamicComponent scale(float scale) {
@@ -85,17 +85,18 @@ public class DynamicComponent implements Component, IDrawable {
     @Override
     public void draw(GuiContext context, int x, int y, int width, int height, WidgetTheme widgetTheme) {
         Component comp = getComp();
-        if (comp instanceof MutableComponent mutableComponent) {
+        if (comp instanceof ModularComponent modularComponent) {
+            Style currentStyle = modularComponent.getStyle();
+            modularComponent.setStyle(currentStyle.applyTo(this.style));
+            float s = modularComponent.getScale();
+            modularComponent.scale(s * this.scale);
+            modularComponent.draw(context, x, y, width, height, widgetTheme);
+            modularComponent.scale(s);
+            modularComponent.setStyle(currentStyle);
+        } else if (comp instanceof MutableComponent mutableComponent) {
             Style currentStyle = mutableComponent.getStyle();
             mutableComponent.setStyle(currentStyle.applyTo(this.style));
-            if (mutableComponent instanceof ModularComponent modularComponent) {
-                float s = modularComponent.getScale();
-                modularComponent.scale(s * this.scale);
-                modularComponent.draw(context, x, y, width, height, widgetTheme);
-                modularComponent.scale(s);
-            } else {
-                FontRenderHelper.drawComponent(comp, context, x, y, width, height, widgetTheme, this.scale);
-            }
+            FontRenderHelper.drawComponent(comp, context, x, y, width, height, widgetTheme, this.scale);
             mutableComponent.setStyle(currentStyle);
         } else {
             FontRenderHelper.drawComponent(comp, context, x, y, width, height, widgetTheme, this.scale);

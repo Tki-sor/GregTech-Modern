@@ -7,6 +7,7 @@ import brachy.modularui.drawable.schema.ISchema;
 
 import net.minecraft.world.phys.BlockHitResult;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -79,8 +80,12 @@ public class SchemaRenderer extends BaseSchemaRenderer {
 
     @Override
     protected void onSuccessfulRayTrace(PoseStack poseStack, @NotNull BlockHitResult result) {
+    }
+
+    @Override
+    protected void submitHighlight(PoseStack poseStack, SubmitNodeCollector collector) {
         if (this.highlight != null) {
-            this.highlight.get().renderHighlight(poseStack, result, camera().pos());
+            this.highlight.get().submitHighlight(collector, poseStack, lastRayTrace());
         }
     }
 

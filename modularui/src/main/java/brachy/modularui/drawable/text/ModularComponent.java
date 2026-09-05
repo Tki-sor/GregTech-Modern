@@ -1,5 +1,6 @@
 package brachy.modularui.drawable.text;
 
+import brachy.modularui.ModularUI;
 import brachy.modularui.api.drawable.Text;
 import brachy.modularui.screen.viewport.GuiContext;
 import brachy.modularui.theme.WidgetTheme;
@@ -11,7 +12,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.data.DataSource;
@@ -22,10 +22,14 @@ import net.minecraft.network.chat.contents.ScoreContents;
 import net.minecraft.network.chat.contents.SelectorContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import com.google.gson.JsonPrimitive;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.locale.Language;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +38,11 @@ import java.util.Optional;
 import java.util.function.IntSupplier;
 import java.util.function.UnaryOperator;
 
-public class ModularComponent extends MutableComponent implements Text {
+public class ModularComponent implements Component, Text {
 
     public static final MutableObjectCodec<ModularComponent> CODEC = MutableObjectCodec.drawableBuilder(ModularComponent.class, "Text")
-            .wrapped(ComponentSerialization.CODEC.xmap(ModularComponent::of, mc -> mc))
+            .wrapped(ModularUI.UNIT_TEST ? Codec.STRING.fieldOf("text").xmap(ModularComponent::literal, ModularComponent::getString).codec()
+                    : ComponentSerialization.CODEC.xmap(ModularComponent::of, mc -> mc))
             .addOpt("alignment", ModularComponent::alignment, ModularComponent::getAlignment, Alignment.CODEC, Alignment.Center)
             .addOpt("scale", ModularComponent::scale, ModularComponent::getScale, Codec.FLOAT, 1f)
             .addOpt("shadow", ModularComponent::shadow, ModularComponent::getShadow, Codec.BOOL, null)
@@ -73,15 +78,20 @@ public class ModularComponent extends MutableComponent implements Text {
     }
 
     public static ModularComponent nbt(String nbtPathPattern, boolean interpreting, Optional<Component> separator, DataSource dataSource) {
-        return ModularComponent.create(new NbtContents(nbtPathPattern, interpreting, separator, dataSource));
+        var path = NbtContents.NBT_PATH_CODEC.parse(JsonOps.INSTANCE, new JsonPrimitive(nbtPathPattern)).result()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid NBT path: " + nbtPathPattern));
+        return ModularComponent.create(new NbtContents(path, interpreting, false, separator, dataSource));
     }
 
     public static ModularComponent score(String name, String objective) {
-        return ModularComponent.create(new ScoreContents(name, objective));
+        return ModularComponent.create(new ScoreContents(com.mojang.datafixers.util.Either.right(name), objective));
     }
 
     public static ModularComponent selector(String pattern, Optional<Component> separator) {
-        return ModularComponent.create(new SelectorContents(pattern, separator));
+        var selector = net.minecraft.commands.arguments.selector.EntitySelector.COMPILABLE_CODEC
+                .parse(JsonOps.INSTANCE, new JsonPrimitive(pattern)).result()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid entity selector: " + pattern));
+        return ModularComponent.create(new SelectorContents(selector, separator));
     }
 
     public static ModularComponent create(@NotNull ComponentContents contents) {
@@ -98,8 +108,46 @@ public class ModularComponent extends MutableComponent implements Text {
     @Getter private Boolean shadow;
     @Getter private IntSupplier dynamicColor;
 
+    private final ComponentContents contents;
+    private final List<Component> siblings;
+    private Style style;
+    private FormattedCharSequence visualOrderText = FormattedCharSequence.EMPTY;
+    private Language decomposedWith;
+
     protected ModularComponent(ComponentContents contents, List<Component> siblings, Style style) {
-        super(contents, siblings, style);
+        this.contents = contents;
+        this.siblings = siblings;
+        this.style = style;
+    }
+
+    @Override
+    public ComponentContents getContents() {
+        return this.contents;
+    }
+
+    @Override
+    public List<Component> getSiblings() {
+        return this.siblings;
+    }
+
+    @Override
+    public Style getStyle() {
+        return this.style;
+    }
+
+    public ModularComponent setStyle(Style style) {
+        this.style = style;
+        return this;
+    }
+
+    @Override
+    public FormattedCharSequence getVisualOrderText() {
+        Language language = Language.getInstance();
+        if (this.decomposedWith != language) {
+            this.visualOrderText = language.getVisualOrder(this);
+            this.decomposedWith = language;
+        }
+        return this.visualOrderText;
     }
 
     @Override
@@ -139,16 +187,16 @@ public class ModularComponent extends MutableComponent implements Text {
     }
 
     @Override
-    public @NotNull ModularComponent plainCopy() {
-        return ModularComponent.create(getContents());
+    public @NotNull net.minecraft.network.chat.MutableComponent plainCopy() {
+        return net.minecraft.network.chat.MutableComponent.create(getContents());
     }
 
     @Override
-    public @NotNull ModularComponent copy() {
-        return new ModularComponent(getContents(), new ArrayList<>(getSiblings()), getStyle())
-                .alignment(this.alignment)
-                .scale(this.scale)
-                .color(this.dynamicColor);
+    public @NotNull net.minecraft.network.chat.MutableComponent copy() {
+        net.minecraft.network.chat.MutableComponent copy = net.minecraft.network.chat.MutableComponent.create(getContents())
+                .setStyle(getStyle());
+        getSiblings().forEach(copy::append);
+        return copy;
     }
 
     @Override
@@ -200,34 +248,30 @@ public class ModularComponent extends MutableComponent implements Text {
         return this;
     }
 
-    @Override
     public @NotNull ModularComponent append(@NotNull String string) {
-        return (ModularComponent) super.append(string);
+        if (!string.isEmpty()) append(Component.literal(string));
+        return this;
     }
 
-    @Override
     public @NotNull ModularComponent append(@NotNull Component sibling) {
-        return (ModularComponent) super.append(sibling);
+        this.siblings.add(sibling);
+        return this;
     }
 
-    @Override
     public @NotNull ModularComponent withStyle(ChatFormatting @NotNull ... formats) {
-        return (ModularComponent) super.withStyle(formats);
+        return withStyle(this.style.applyFormats(formats));
     }
 
-    @Override
     public @NotNull ModularComponent withStyle(@NotNull Style style) {
-        return (ModularComponent) super.withStyle(style);
+        return setStyle(style.applyTo(this.style));
     }
 
-    @Override
     public @NotNull ModularComponent withStyle(@NotNull ChatFormatting format) {
-        return (ModularComponent) super.withStyle(format);
+        return withStyle(this.style.applyFormat(format));
     }
 
-    @Override
     public @NotNull ModularComponent withStyle(@NotNull UnaryOperator<Style> modifyFunc) {
-        return (ModularComponent) super.withStyle(modifyFunc);
+        return setStyle(modifyFunc.apply(this.style));
     }
 
     @Override

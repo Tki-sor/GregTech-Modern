@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -58,7 +59,7 @@ public abstract class ModularNetwork {
         @OnlyIn(Dist.CLIENT)
         @Override
         void sendPacket(CustomPacketPayload packet, Player player) {
-            PacketDistributor.sendToServer(packet);
+            ClientPacketDistributor.sendToServer(packet);
         }
 
         @OnlyIn(Dist.CLIENT)

@@ -8,6 +8,7 @@ import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.Encoder;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.KeyDispatchCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import com.mojang.serialization.codecs.KeyDispatchCodec;
@@ -224,7 +225,7 @@ public class CodecUtil {
     public static <K, V> MapCodec<V> partialDispatchMap(String key, Codec<K> keyCodec,
                                                         Function<? super V, ? extends DataResult<? extends K>> type,
                                                         Function<? super K, ? extends DataResult<? extends MapCodec<? extends V>>> codec) {
-        return new KeyDispatchCodec<>(key, keyCodec, type, codec);
+        return new KeyDispatchCodec<K, V>(keyCodec.fieldOf(key), type, codec);
 
     }
 

@@ -127,19 +127,19 @@ public class Rectangle implements IDrawable, IAnimatable<Rectangle> {
             float d = this.borderThickness;
             float x1 = x0 + width, y1 = y0 + height;
 
-            Matrix4f pose = context.getGraphics().pose().last().pose();
-            VertexConsumer bufferbuilder = context.getGraphics().bufferSource()
-                    .getBuffer(MUIRenderTypes.guiTriangleStrip());
-            v(pose, bufferbuilder, x0, y0, this.colorTL);
-            v(pose, bufferbuilder, x1 - d, y0 + d, this.colorTR);
-            v(pose, bufferbuilder, x1, y0, this.colorTR);
-            v(pose, bufferbuilder, x1 - d, y1 - d, this.colorBR);
-            v(pose, bufferbuilder, x1, y1, this.colorBR);
-            v(pose, bufferbuilder, x0 + d, y1 - d, this.colorBL);
-            v(pose, bufferbuilder, x0, y1, this.colorBL);
-            v(pose, bufferbuilder, x0 + d, y0 + d, this.colorTL);
-            v(pose, bufferbuilder, x0, y0, this.colorTL);
-            v(pose, bufferbuilder, x1 - d, y0 + d, this.colorTR);
+            Matrix4f pose = GuiDraw.getPose(context.getGraphics());
+            GuiDraw.submitGeometry(context.getGraphics(), MUIRenderTypes.guiTriangleStrip(), x0, y0, width, height, buffer -> {
+                v(pose, buffer, x0, y0, this.colorTL);
+                v(pose, buffer, x1 - d, y0 + d, this.colorTR);
+                v(pose, buffer, x1, y0, this.colorTR);
+                v(pose, buffer, x1 - d, y1 - d, this.colorBR);
+                v(pose, buffer, x1, y1, this.colorBR);
+                v(pose, buffer, x0 + d, y1 - d, this.colorBL);
+                v(pose, buffer, x0, y1, this.colorBL);
+                v(pose, buffer, x0 + d, y0 + d, this.colorTL);
+                v(pose, buffer, x0, y0, this.colorTL);
+                v(pose, buffer, x1 - d, y0 + d, this.colorTR);
+            });
         }
     }
 

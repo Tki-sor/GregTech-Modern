@@ -26,6 +26,8 @@ import java.util.function.ToIntFunction;
  */
 public class Color {
 
+    private static int glColor = 0xFFFFFFFF;
+
     /**
      * Creates a color int. All values should be 0 - 255
      */
@@ -805,12 +807,12 @@ public class Color {
     @OnlyIn(Dist.CLIENT)
     public static void setGlColor(int color) {
         if (color == 0) {
-            RenderSystem.setShaderColor(0, 0, 0, 0);
+            glColor = 0;
             return;
         }
-        float a = getAlphaF(color);
-        if (a == 0) a = 1f;
-        RenderSystem.setShaderColor(getRedF(color), getGreenF(color), getBlueF(color), a);
+        int alpha = getAlpha(color);
+        if (alpha == 0) alpha = 255;
+        glColor = argb(getRed(color), getGreen(color), getBlue(color), alpha);
     }
 
     /**
@@ -820,11 +822,7 @@ public class Color {
      */
     @OnlyIn(Dist.CLIENT)
     public static void setGlColorOpaque(int color) {
-        if (color == 0) {
-            RenderSystem.setShaderColor(0, 0, 0, 0);
-            return;
-        }
-        RenderSystem.setShaderColor(getRedF(color), getGreenF(color), getBlueF(color), 1f);
+        glColor = color == 0 ? 0 : argb(getRed(color), getGreen(color), getBlue(color), 255);
     }
 
     /**
@@ -833,6 +831,11 @@ public class Color {
     @OnlyIn(Dist.CLIENT)
     public static void resetGlColor() {
         setGlColorOpaque(WHITE.main);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static int getGlColor() {
+        return glColor;
     }
 
     public static int getLargestDiff(int argb1, int argb2) {

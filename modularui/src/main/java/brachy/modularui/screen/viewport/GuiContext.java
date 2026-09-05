@@ -69,6 +69,83 @@ public class GuiContext extends GuiViewportStack {
         this.UItype = UItype;
     }
 
+    @ApiStatus.Internal
+    public void setGraphics(@Nullable GuiGraphicsExtractor graphics) {
+        this.graphics = graphics;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        if (this.graphics != null) {
+            this.graphics.pose().clear();
+        }
+    }
+
+    @Override
+    public void pushMatrix() {
+        super.pushMatrix();
+        if (this.graphics != null) {
+            this.graphics.pose().pushMatrix();
+        }
+    }
+
+    @Override
+    public void popMatrix() {
+        super.popMatrix();
+        if (this.graphics != null) {
+            this.graphics.pose().popMatrix();
+        }
+    }
+
+    @Override
+    public void pushViewport(brachy.modularui.api.layout.IViewport viewport, Area area) {
+        super.pushViewport(viewport, area);
+        if (this.graphics != null) {
+            this.graphics.pose().pushMatrix();
+        }
+    }
+
+    @Override
+    public void popViewport(brachy.modularui.api.layout.IViewport viewport) {
+        super.popViewport(viewport);
+        if (this.graphics != null) {
+            this.graphics.pose().popMatrix();
+        }
+    }
+
+    @Override
+    public void translate(float x, float y) {
+        super.translate(x, y);
+        if (this.graphics != null) {
+            this.graphics.pose().translate(x, y);
+        }
+    }
+
+    @Override
+    public void translate(float x, float y, float z) {
+        super.translate(x, y, z);
+        if (this.graphics != null) {
+            this.graphics.pose().translate(x, y);
+        }
+    }
+
+    @Override
+    public void rotateZ(float angle) {
+        super.rotateZ(angle);
+        if (this.graphics != null) {
+            this.graphics.pose().rotate(angle);
+        }
+    }
+
+    @Override
+    public void scale(float x, float y) {
+        super.scale(x, y);
+        if (this.graphics != null) {
+            this.graphics.pose().scale(x, y);
+        }
+    }
+
     public boolean isAbove(IWidget widget) {
         return isMouseAbove(widget.getArea());
     }

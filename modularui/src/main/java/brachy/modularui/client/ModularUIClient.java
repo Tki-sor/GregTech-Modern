@@ -7,11 +7,12 @@ import brachy.modularui.api.drawable.IIcon;
 import brachy.modularui.drawable.ClientTooltipComponentIcon;
 import brachy.modularui.drawable.DelegateIcon;
 import brachy.modularui.drawable.DrawableTooltipComponent;
-import brachy.modularui.drawable.GuiSpriteManager;
 import brachy.modularui.drawable.HoverableIcon;
 import brachy.modularui.drawable.Icon;
 import brachy.modularui.drawable.InteractableIcon;
 import brachy.modularui.drawable.TooltipComponentIcon;
+import brachy.modularui.drawable.schema.SchemaPictureInPictureRenderer;
+import brachy.modularui.drawable.schema.SchemaRenderState;
 import brachy.modularui.drawable.text.KeyIcon;
 import brachy.modularui.drawable.text.TextIcon;
 import brachy.modularui.network.ModularNetwork;
@@ -33,9 +34,10 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 
 import it.unimi.dsi.fastutil.floats.FloatUnaryOperator;
 import lombok.Getter;
@@ -57,6 +59,7 @@ public class ModularUIClient {
         modBus.addListener(this::registerScreens);
         modBus.addListener(this::onRegisterClientTooltipComponents);
         modBus.addListener(this::onRegisterAssetReloadListeners);
+        modBus.addListener(this::registerPictureInPictureRenderers);
 
         IEventBus forgeBus = NeoForge.EVENT_BUS;
         forgeBus.addListener(this::onUnloadWorld);
@@ -71,10 +74,6 @@ public class ModularUIClient {
     }
 
     protected void onInit(FMLCommonSetupEvent event) {
-        if (!ModularUI.isDataGen()) {
-            // enable stencil bits, must call on render thread
-            RenderSystem.recordRenderCall(() -> Minecraft.getInstance().getMainRenderTarget().enableStencil());
-        }
     }
 
     @SuppressWarnings("deprecation")
@@ -95,9 +94,12 @@ public class ModularUIClient {
         event.register(TooltipComponentIcon.class, TooltipComponentIcon::clientComponent);
     }
 
-    public void onRegisterAssetReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener(ThemeManager.INSTANCE);
-        event.registerReloadListener(new GuiSpriteManager(Minecraft.getInstance().getTextureManager()));
+    public void onRegisterAssetReloadListeners(AddClientReloadListenersEvent event) {
+        event.addListener(ModularUI.id("themes"), ThemeManager.INSTANCE);
+    }
+
+    private void registerPictureInPictureRenderers(RegisterPictureInPictureRenderersEvent event) {
+        event.register(SchemaRenderState.class, SchemaPictureInPictureRenderer::new);
     }
 
     private void onUnloadWorld(LevelEvent.Unload event) {

@@ -22,9 +22,9 @@ public class MinecraftMixin {
     public Screen screen;
 
     @Inject(method = "runTick",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/DeltaTracker$Timer;advanceTime(JZ)I", shift = At.Shift.AFTER))
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/DeltaTracker$Timer;advanceGameTime(J)I", shift = At.Shift.AFTER))
     public void modularui$updateTimer(CallbackInfo ci) {
-        int ticks = ModularUIClient.getTimer60Fps().advanceTime(Util.getMillis(), true);
+        int ticks = ModularUIClient.getTimer60Fps().advanceGameTime(Util.getMillis());
         for (int j = 0; j < Math.min(20, ticks); ++j) {
             ClientScreenHandler.onFrameUpdate();
         }

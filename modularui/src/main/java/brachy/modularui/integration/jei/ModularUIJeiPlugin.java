@@ -18,7 +18,6 @@ import mezz.jei.api.runtime.IJeiRuntime;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 @JeiPlugin
 public class ModularUIJeiPlugin implements IModPlugin {

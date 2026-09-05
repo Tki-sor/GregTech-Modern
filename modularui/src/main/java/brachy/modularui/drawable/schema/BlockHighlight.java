@@ -1,15 +1,18 @@
 package brachy.modularui.drawable.schema;
 
 import brachy.modularui.utils.Color;
+import brachy.modularui.utils.MUIRenderTypes;
 
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.shapes.Shapes;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
@@ -84,10 +87,6 @@ public class BlockHighlight {
     }
 
     public void renderHighlight(PoseStack poseStack, BlockPos pos, Direction direction, Vector3f camera) {
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.setShader(GameRenderer::getPositionShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
         Color.setGlColor(this.color);
         poseStack.pushPose();
         poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
@@ -95,8 +94,18 @@ public class BlockHighlight {
         float distance = camera.distance(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
         doRender(poseStack, direction, distance);
         poseStack.popPose();
-        RenderSystem.enableCull();
-        RenderSystem.enableDepthTest();
+    }
+
+    /** Submit a target-native outline for the schema PIP renderer. */
+    public void submitHighlight(SubmitNodeCollector collector, PoseStack poseStack, @Nullable BlockHitResult result) {
+        if (result == null || result.getType() != HitResult.Type.BLOCK) return;
+        BlockPos blockPos = result.getBlockPos().immutable();
+        collector.submitCustomGeometry(poseStack, RenderTypes.lines(), (renderPose, buffer) -> {
+            PoseStack outlinePose = new PoseStack();
+            outlinePose.last().set(renderPose);
+            ShapeRenderer.renderShape(outlinePose, buffer, Shapes.block(),
+                    blockPos.getX(), blockPos.getY(), blockPos.getZ(), this.color, Math.max(1.0f, this.thickness));
+        });
     }
 
     protected void doRender(PoseStack poseStack, @Nullable Direction direction, float distance) {
@@ -149,7 +158,7 @@ public class BlockHighlight {
         buildVertex(pose, builder, vert, 9);
         buildInnerVertex(pose, builder, vert, 9, side, offset);
 
-        BufferUploader.drawWithShader(builder.buildOrThrow());
+        MUIRenderTypes.guiPositionQuads().draw(builder.buildOrThrow());
     }
 
     protected static void buildVertex(Matrix4f pose, BufferBuilder builder, float[] vertices, int vertexIndex) {

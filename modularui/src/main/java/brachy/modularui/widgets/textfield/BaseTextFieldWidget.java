@@ -266,11 +266,12 @@ public class BaseTextFieldWidget<W extends BaseTextFieldWidget<W>> extends Abstr
                 this.handler.delete();
                 return Result.SUCCESS;
         }
-        if (Screen.isCopy(keyCode)) {
+        boolean control = (modifiers & GLFW.GLFW_MOD_CONTROL) != 0;
+        if (control && keyCode == InputConstants.KEY_C) {
             // copy marked text
             Minecraft.getInstance().keyboardHandler.setClipboard(this.handler.getSelectedText());
             return Result.SUCCESS;
-        } else if (Screen.isPaste(keyCode)) {
+        } else if (control && keyCode == InputConstants.KEY_V) {
             if (this.handler.hasTextMarked()) {
                 this.handler.delete();
             }
@@ -278,12 +279,12 @@ public class BaseTextFieldWidget<W extends BaseTextFieldWidget<W>> extends Abstr
             this.handler.insert(Minecraft.getInstance().keyboardHandler.getClipboard().replace("§", ""),
                     canScrollHorizontally());
             return Result.SUCCESS;
-        } else if (Screen.isCut(keyCode) && this.handler.hasTextMarked()) {
+        } else if (control && keyCode == InputConstants.KEY_X && this.handler.hasTextMarked()) {
             // copy and delete copied text
             Minecraft.getInstance().keyboardHandler.setClipboard(this.handler.getSelectedText());
             this.handler.delete();
             return Result.SUCCESS;
-        } else if (Screen.isSelectAll(keyCode)) {
+        } else if (control && keyCode == InputConstants.KEY_A) {
             // mark whole text
             this.handler.markAll();
             return Result.SUCCESS;

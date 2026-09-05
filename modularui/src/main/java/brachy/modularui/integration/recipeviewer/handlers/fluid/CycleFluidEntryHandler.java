@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class CycleFluidEntryHandler implements IFluidHandler {
 
     @Getter

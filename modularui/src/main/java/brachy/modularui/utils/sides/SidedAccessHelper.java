@@ -6,7 +6,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeAccess;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -25,7 +25,7 @@ public final class SidedAccessHelper {
         }
     }
 
-    public static RecipeManager getRecipeManager() {
+    public static RecipeAccess getRecipeManager() {
         if (ModularUI.isClientThread()) {
             return ClientCallWrapper.getClientRecipeManager();
         } else {

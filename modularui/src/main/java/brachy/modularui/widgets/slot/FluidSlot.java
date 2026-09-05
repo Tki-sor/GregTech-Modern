@@ -151,9 +151,7 @@ public class FluidSlot extends AbstractFluidDisplayWidget<FluidSlot>
     public void drawOverlay(ModularGuiContext context, WidgetThemeEntry<?> widgetTheme) {
         super.drawOverlay(context, widgetTheme);
         if (isHovering()) {
-            RenderSystem.colorMask(true, true, true, false);
             GuiDraw.drawRect(context.getGraphics(), 1, 1, getArea().w() - 2, getArea().h() - 2, getSlotHoverColor());
-            RenderSystem.colorMask(true, true, true, true);
         }
     }
 
@@ -175,7 +173,7 @@ public class FluidSlot extends AbstractFluidDisplayWidget<FluidSlot>
         }
         ItemStack cursorStack = MCHelper.getPlayer().containerMenu.getCarried();
         if (this.syncHandler.phantom() ||
-                (!cursorStack.isEmpty() && cursorStack.getCapability(Capabilities.FluidHandler.ITEM) != null)) {
+                (!cursorStack.isEmpty() && cursorStack.getCapability(Capabilities.Fluid.ITEM, null) != null)) {
             MouseData mouseData = MouseData.create(button);
             this.syncHandler.syncToServer(FluidSlotSyncHandler.SYNC_CLICK, mouseData::writeToPacket);
         }

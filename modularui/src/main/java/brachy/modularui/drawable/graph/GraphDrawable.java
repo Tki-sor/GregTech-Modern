@@ -8,9 +8,6 @@ import brachy.modularui.theme.WidgetTheme;
 import brachy.modularui.utils.Color;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import lombok.Getter;
@@ -57,10 +54,8 @@ public class GraphDrawable implements IDrawable {
                     this.view.getScreenHeight(), this.backgroundColor);
         }
 
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        var buffer = graphics.bufferSource().getBuffer(RenderType.guiOverlay());
         // grid lines
-        drawGrid(graphics, buffer);
+        drawGrid(graphics, null);
 
         var stencil = context.getStencil();
         stencil.push((int) this.view.sx0, (int) this.view.sy0, (int) (this.view.getScreenWidth() + 1),
@@ -71,8 +66,7 @@ public class GraphDrawable implements IDrawable {
         }
         stencil.pop();
         // axis ticks
-        buffer = graphics.bufferSource().getBuffer(RenderType.guiOverlay());
-        drawTicks(graphics, buffer);
+        drawTicks(graphics, null);
 
         // GuiDraw.drawBorderOutsideLTRB(graphics, this.view.sx0, this.view.sy0, this.view.sx1, this.view.sy1, 0.5f,
         // Color.BLACK.main);
@@ -81,35 +75,9 @@ public class GraphDrawable implements IDrawable {
     }
 
     public void drawGrid(GuiGraphicsExtractor graphics, VertexConsumer buffer) {
-        if (this.minorGridLineWidth > 0) {
-            int r = Color.getRed(this.minorGridLineColor);
-            int g = Color.getGreen(this.minorGridLineColor);
-            int b = Color.getBlue(this.minorGridLineColor);
-            int a = Color.getAlpha(this.minorGridLineColor);
-            this.x.drawGridLines(graphics.pose().last().pose(), buffer, this.view, this.y, false,
-                    this.minorGridLineWidth, r, g, b, a);
-        }
-        if (this.gridLineWidth > 0) {
-            int r = Color.getRed(this.gridLineColor);
-            int g = Color.getGreen(this.gridLineColor);
-            int b = Color.getBlue(this.gridLineColor);
-            int a = Color.getAlpha(this.gridLineColor);
-            var pose = graphics.pose().last().pose();
-            this.x.drawGridLines(pose, buffer, this.view, this.y, true, this.gridLineWidth, r, g, b, a);
-            this.y.drawGridLines(pose, buffer, this.view, this.x, true, this.gridLineWidth, r, g, b, a);
-        }
     }
 
     public void drawTicks(GuiGraphicsExtractor graphics, VertexConsumer buffer) {
-        var pose = graphics.pose().last().pose();
-        this.x.drawTicks(pose, buffer, this.view, this.y, false, this.minorTickThickness, this.minorTickLength, 0, 0, 0,
-                0xFF);
-        this.y.drawTicks(pose, buffer, this.view, this.x, false, this.minorTickThickness, this.minorTickLength, 0, 0, 0,
-                0xFF);
-        this.x.drawTicks(pose, buffer, this.view, this.y, true, this.majorTickThickness, this.majorTickLength, 0, 0, 0,
-                0xFF);
-        this.y.drawTicks(pose, buffer, this.view, this.x, true, this.majorTickThickness, this.majorTickLength, 0, 0, 0,
-                0xFF);
     }
 
     private boolean compute() {

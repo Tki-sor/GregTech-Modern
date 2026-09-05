@@ -145,10 +145,6 @@ public class FluidSlotSyncHandler extends ValueSyncHandler<RegistryFriendlyByteB
     private void tryClickContainer(MouseData mouseData) {
         Player player = getSyncManager().getPlayer();
         ItemStack currentStack = player.containerMenu.getCarried();
-        if (currentStack.getCapability(Capabilities.FluidHandler.ITEM) == null) {
-            return;
-        }
-
         int maxAttempts = mouseData.shift() ? currentStack.getCount() : 1;
         if (mouseData.isLeftMouseButton()) {
             if (!this.canFillSlot || !fillSlot(player, currentStack, maxAttempts, Integer.MAX_VALUE, true)) {
@@ -224,7 +220,7 @@ public class FluidSlotSyncHandler extends ValueSyncHandler<RegistryFriendlyByteB
         Player player = getSyncManager().getPlayer();
         ItemStack currentStack = player.containerMenu.getCarried();
         FluidStack currentFluid = this.fluidTank.getFluid();
-        IFluidHandlerItem fluidHandlerItem = currentStack.getCapability(Capabilities.FluidHandler.ITEM);
+        IFluidHandlerItem fluidHandlerItem = null;
 
         if (mouseData.isLeftMouseButton()) {
             if (this.canFillSlot) {
@@ -283,7 +279,7 @@ public class FluidSlotSyncHandler extends ValueSyncHandler<RegistryFriendlyByteB
             if (fluidHandlerItem != null) {
                 // use the fluid cells fluid amount if it has the same fluid
                 FluidStack cellFluid = fluidHandlerItem.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
-                if (!cellFluid.isEmpty() && cellFluid.isFluidEqual(currentFluid)) {
+                if (!cellFluid.isEmpty() && FluidStack.isSameFluidSameComponents(cellFluid, currentFluid)) {
                     this.fluidTank.drain(cellFluid.getAmount(), IFluidHandler.FluidAction.EXECUTE);
                     if (this.fluidTank.getFluid().isEmpty()) {
                         // only play sound when setting a new fluid
@@ -306,7 +302,6 @@ public class FluidSlotSyncHandler extends ValueSyncHandler<RegistryFriendlyByteB
         Player player = getSyncManager().getPlayer();
         ItemStack currentStack = player.containerMenu.getCarried();
         if (currentStack.getCount() != 1) return;
-        if (currentStack.getCapability(Capabilities.FluidHandler.ITEM) == null) return;
 
         int amount = 1;
         if (mouseData.shift()) amount *= 10;

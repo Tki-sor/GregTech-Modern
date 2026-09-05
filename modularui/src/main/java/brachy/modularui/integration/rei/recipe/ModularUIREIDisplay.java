@@ -30,6 +30,7 @@ import me.shedaniel.rei.api.client.gui.widgets.TooltipContext;
 import me.shedaniel.rei.api.client.gui.widgets.Widget;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
+import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.impl.client.gui.widget.EntryWidget;
 import org.jetbrains.annotations.ApiStatus;
@@ -41,6 +42,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import net.minecraft.network.codec.StreamCodec;
+import com.mojang.serialization.MapCodec;
 
 @ApiStatus.Experimental
 public class ModularUIREIDisplay implements Display {
@@ -95,6 +98,11 @@ public class ModularUIREIDisplay implements Display {
     @Override
     public Optional<Identifier> getDisplayLocation() {
         return Optional.ofNullable(recipeId);
+    }
+
+    @Override
+    public DisplaySerializer<? extends Display> getSerializer() {
+        return DisplaySerializer.of(MapCodec.unit(() -> this), StreamCodec.unit(this));
     }
 
     public List<Widget> createWidgets(Rectangle bounds) {
@@ -162,12 +170,11 @@ public class ModularUIREIDisplay implements Display {
         }
 
         @Override
-        public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
             ModularScreen screen = ModularUIREIDisplay.this.screen.get();
             RecipeScreenRenderingUtil.drawScreenBackground(guiGraphics, screen, mouseX, mouseY, partialTick);
         }
 
-        @Override
         public @Nullable Tooltip getTooltip(TooltipContext context) {
             return null;
         }
@@ -177,42 +184,34 @@ public class ModularUIREIDisplay implements Display {
             return Collections.emptyList();
         }
 
-        @Override
         public void mouseMoved(double mouseX, double mouseY) {
             //screen.get().mouseMoved(mouseX, mouseY);
         }
 
-        @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             return screen.get().mousePressed(button);
         }
 
-        @Override
         public boolean mouseReleased(double mouseX, double mouseY, int button) {
             return screen.get().mouseReleased(button);
         }
 
-        @Override
         public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
             return screen.get().mouseDragged(button, dragX, dragY);
         }
 
-        @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
             return screen.get().mouseScrolled(deltaX, deltaY);
         }
 
-        @Override
         public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
             return screen.get().keyPressed(keyCode, scanCode, modifiers);
         }
 
-        @Override
         public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
             return screen.get().keyReleased(keyCode, scanCode, modifiers);
         }
 
-        @Override
         public boolean charTyped(char codePoint, int modifiers) {
             return screen.get().charTyped(codePoint, modifiers);
         }
@@ -223,7 +222,7 @@ public class ModularUIREIDisplay implements Display {
         public UIForegroundRenderWidget() {}
 
         @Override
-        public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
             ModularScreen screen = ModularUIREIDisplay.this.screen.get();
             RecipeScreenRenderingUtil.drawScreenForeground(guiGraphics, screen, mouseX, mouseY, partialTick);
         }

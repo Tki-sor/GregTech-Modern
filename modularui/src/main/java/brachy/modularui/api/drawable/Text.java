@@ -145,7 +145,7 @@ public interface Text extends IDrawable {
      * @return the current formatted string
      */
     default MutableComponent getFormatted() {
-        return get();
+        return get().copy();
     }
 
     @OnlyIn(Dist.CLIENT)

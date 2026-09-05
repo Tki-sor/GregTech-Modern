@@ -2,13 +2,10 @@ package brachy.modularui.drawable.progress;
 
 import brachy.modularui.screen.viewport.GuiContext;
 import brachy.modularui.theme.WidgetTheme;
+import brachy.modularui.utils.MUIRenderTypes;
 
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.util.Mth;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -28,8 +25,6 @@ public class CircularProgressDrawable extends AbstractProgressDrawable<CircularP
         final float p = progress;
         float angle = p * Mth.TWO_PI;
         context.getStencil().push(() -> {
-            ShaderInstance lastShader = RenderSystem.getShader();
-            RenderSystem.setShader(GameRenderer::getPositionShader);
             Matrix4f pose = context.graphicsPose().last().pose();
             Tesselator tesselator = Tesselator.getInstance();
             BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION);
@@ -102,8 +97,7 @@ public class CircularProgressDrawable extends AbstractProgressDrawable<CircularP
                 }
             }
 
-            BufferUploader.drawWithShader(buffer.buildOrThrow());
-            RenderSystem.setShader(() -> lastShader);
+            MUIRenderTypes.guiPositionTriangleFan().draw(buffer.buildOrThrow());
 
         }, x, y, width, height);
     }

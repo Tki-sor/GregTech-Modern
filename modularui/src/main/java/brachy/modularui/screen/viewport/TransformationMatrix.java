@@ -103,6 +103,10 @@ public class TransformationMatrix {
         return this.invertedMatrix;
     }
 
+    public Matrix4f pose() {
+        return this.matrix;
+    }
+
     public void markDirty() {
         this.dirty = true;
     }

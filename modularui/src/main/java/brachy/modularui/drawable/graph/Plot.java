@@ -170,12 +170,14 @@ public class Plot {
         int b = Color.getBlue(color);
         int a = Color.getAlpha(color);
 
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        var pose = graphics.pose().last().pose();
-        var buffer = graphics.bufferSource().getBuffer(MUIRenderTypes.guiTriangleStrip());
-        for (int i = 0; i < this.vertexBuffer.length; i += 2) {
-            buffer.addVertex(pose, this.vertexBuffer[i], this.vertexBuffer[i + 1], 0).setColor(r, g, b, a);
-        }
+        var pose = GuiDraw.getPose(graphics);
+        GuiDraw.submitGeometry(graphics, MUIRenderTypes.guiTriangleStrip(), view.sx0, view.sy0,
+                view.getScreenWidth(), view.getScreenHeight(), buffer -> {
+                    for (int i = 0; i < this.vertexBuffer.length; i += 2) {
+                        buffer.addVertex(pose, this.vertexBuffer[i], this.vertexBuffer[i + 1], 0)
+                                .setColor(r, g, b, a);
+                    }
+                });
     }
 
     public double[] getX() {

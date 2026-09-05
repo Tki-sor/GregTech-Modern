@@ -33,7 +33,7 @@ public record TooltipComponentIcon(ClientTooltipComponent clientComponent) imple
 
     @Override
     public int getHeight() {
-        return clientComponent.getHeight();
+        return clientComponent.getHeight(Minecraft.getInstance().font);
     }
 
     @Override
@@ -52,13 +52,14 @@ public record TooltipComponentIcon(ClientTooltipComponent clientComponent) imple
         if (width < clientComponent.getWidth(font)) {
             ratio = (float) width / clientComponent.getWidth(font);
         }
-        if (height < clientComponent.getHeight()) {
-            ratio = Math.min(ratio, (float) height / clientComponent.getHeight());
+        if (height < clientComponent.getHeight(font)) {
+            ratio = Math.min(ratio, (float) height / clientComponent.getHeight(font));
         }
         if (ratio != 1.0f) {
             context.graphicsPose().scale(ratio, ratio, 1.0f);
         }
-        clientComponent.renderImage(font, x, y, context.getGraphics());
+        clientComponent.extractText(context.getGraphics(), font, x, y);
+        clientComponent.extractImage(font, x, y, width, height, context.getGraphics());
 
         context.graphicsPose().popPose();
     }

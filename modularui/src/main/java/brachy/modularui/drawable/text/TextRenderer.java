@@ -148,7 +148,7 @@ public class TextRenderer {
         if (!this.simulate) {
             context.graphicsPose().pushPose();
             context.graphicsPose().translate(this.x, this.y, 10);
-            context.graphicsPose().scale(this.scale, this.scale, 1f);
+            context.graphicsPose().scale(this.scale, this.scale);
             context.graphicsPose().translate(-this.x, -this.y, 0);
         }
         int y0 = getStartY(height, height);
@@ -267,10 +267,10 @@ public class TextRenderer {
 
     protected void draw(GuiGraphicsExtractor graphics, FormattedCharSequence text, float x, float y) {
         if (this.simulate || graphics == null) return;
-        graphics.pose().pushPose();
-        graphics.pose().scale(this.scale, this.scale, 0f);
-        graphics.drawString(getFont(), text, (int) (x / this.scale), (int) (y / this.scale), this.color, this.shadow);
-        graphics.pose().popPose();
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(this.scale, this.scale);
+        graphics.text(getFont(), text, (int) (x / this.scale), (int) (y / this.scale), this.color, this.shadow);
+        graphics.pose().popMatrix();
     }
 
     public float getFontHeight() {

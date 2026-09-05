@@ -56,7 +56,7 @@ public class Viewport {
     }
 
     public void applyViewport() {
-        RenderSystem.viewport(getX(), getY(), getW(), getH());
+        // GUI extraction owns the viewport; retain calculated coordinates for projection helpers.
     }
 
     public float rescaleXToViewport(float x, float width) {

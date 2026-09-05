@@ -5,10 +5,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelTimeAccess;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.Blocks;
@@ -32,8 +32,7 @@ import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-public class RenderLevel implements LevelTimeAccess {
+public class RenderLevel implements BlockAndTintGetter {
 
     @Getter private final ISchema schema;
     private final Level level;
@@ -49,7 +48,6 @@ public class RenderLevel implements LevelTimeAccess {
     }
 
     @Nullable
-    @Override
     public BlockEntity getBlockEntity(BlockPos pos) {
         BlockState state = this.level.getBlockState(pos);
         if (!this.renderFilter.shouldRender(pos, state)) {
@@ -68,7 +66,6 @@ public class RenderLevel implements LevelTimeAccess {
         return this.level.getBlockEntity(pos);
     }
 
-    @Override
     public BlockState getBlockState(BlockPos pos) {
         BlockState state = this.level.getBlockState(pos);
         if (!this.renderFilter.shouldRender(pos, state)) {
@@ -77,7 +74,6 @@ public class RenderLevel implements LevelTimeAccess {
         return state;
     }
 
-    @Override
     public FluidState getFluidState(BlockPos pos) {
         BlockState state = this.level.getBlockState(pos);
         if (!this.renderFilter.shouldRender(pos, state)) {
@@ -87,82 +83,92 @@ public class RenderLevel implements LevelTimeAccess {
     }
 
     @Override
+    public net.minecraft.world.level.CardinalLighting cardinalLighting() {
+        return this.level.dimensionType().cardinalLightType().get();
+    }
+
+    @Override
+    public int getBlockTint(BlockPos pos, net.minecraft.world.level.ColorResolver colorResolver) {
+        return colorResolver.getColor(this.level.getBiomeManager().getNoiseBiomeAtPosition(pos).value(), pos.getX(), pos.getZ());
+    }
+
+    @Override
+    public int getHeight() {
+        return this.level.getHeight();
+    }
+
+    @Override
+    public int getMinY() {
+        return this.level.getMinY();
+    }
+
     public @Nullable ChunkAccess getChunk(int x, int z, ChunkStatus requiredStatus, boolean nonnull) {
         return level.getChunk(x, z, requiredStatus, nonnull);
     }
 
-    @Override
     public boolean hasChunk(int chunkX, int chunkZ) {
         return level.hasChunk(chunkX, chunkZ);
     }
 
-    @Override
     public int getHeight(Heightmap.Types heightmapType, int x, int z) {
         return level.getHeight(heightmapType, x, z);
     }
 
-    @Override
     public int getSkyDarken() {
         return level.getSkyDarken();
     }
 
-    @Override
     public BiomeManager getBiomeManager() {
         return level.getBiomeManager();
     }
 
-    @Override
     public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) {
         return level.getUncachedNoiseBiome(x, y, z);
     }
 
-    @Override
     public boolean isClientSide() {
         return level.isClientSide();
     }
 
-    @Override
     public int getSeaLevel() {
         return level.getSeaLevel();
     }
 
-    @Override
     public DimensionType dimensionType() {
         return level.dimensionType();
     }
 
-    @Override
     public RegistryAccess registryAccess() {
         return level.registryAccess();
     }
 
-    @Override
     public FeatureFlagSet enabledFeatures() {
         return level.enabledFeatures();
     }
 
-    @Override
     public float getShade(Direction direction, boolean shade) {
-        return level.getShade(direction, shade);
+        if (!shade) return 1.0f;
+        return switch (direction) {
+            case DOWN -> 0.5f;
+            case UP -> 1.0f;
+            case NORTH, SOUTH -> 0.8f;
+            case WEST, EAST -> 0.6f;
+        };
     }
 
-    @Override
     public LevelLightEngine getLightEngine() {
         return level.getLightEngine();
     }
 
-    @Override
     public WorldBorder getWorldBorder() {
         return level.getWorldBorder();
     }
 
-    @Override
     public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, AABB collisionBox) {
         return level.getEntityCollisions(entity, collisionBox);
     }
 
-    @Override
     public long dayTime() {
-        return level.dayTime();
+        return level.getOverworldClockTime();
     }
 }

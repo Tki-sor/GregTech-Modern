@@ -33,6 +33,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -141,7 +142,7 @@ public class GuiManager {
         // server will send packet back to actually open the gui
         RegistryFriendlyByteBuf buffer = IRegistryFriendlyByteBufExtension.createEmpty(MCHelper.getMc().getConnection().registryAccess());
         factory.writeGuiData(guiData, buffer);
-        PacketDistributor.sendToServer(new OpenGuiPacket<>(0, 0, factory, buffer));
+        ClientPacketDistributor.sendToServer(new OpenGuiPacket<>(0, 0, factory, buffer));
     }
 
     @OnlyIn(Dist.CLIENT)

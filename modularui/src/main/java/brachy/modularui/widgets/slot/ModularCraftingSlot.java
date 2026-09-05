@@ -160,7 +160,7 @@ public class ModularCraftingSlot extends ModularSlot {
     @Override
     protected void checkTakeAchievements(@NotNull ItemStack stack) {
         if (this.amountCrafted > 0) {
-            stack.onCraftedBy(getPlayer().level(), getPlayer(), this.amountCrafted);
+            stack.onCraftedBy(getPlayer(), this.amountCrafted);
             EventHooks.firePlayerCraftingEvent(getPlayer(), stack, this.getCraftSlots());
         }
 
@@ -183,8 +183,7 @@ public class ModularCraftingSlot extends ModularSlot {
         this.checkTakeAchievements(stack);
 
         CommonHooks.setCraftingPlayer(player);
-        NonNullList<ItemStack> recipeInputs = player.level().getRecipeManager()
-                .getRemainingItemsFor(RecipeType.CRAFTING, this.getCraftSlots().asCraftInput(), player.level());
+        NonNullList<ItemStack> recipeInputs = NonNullList.withSize(this.getCraftSlots().getContainerSize(), ItemStack.EMPTY);
         CommonHooks.setCraftingPlayer(null);
 
         for (int i = 0; i < recipeInputs.size(); ++i) {
@@ -224,12 +223,12 @@ public class ModularCraftingSlot extends ModularSlot {
         Level level = player.level();
         ItemStack result = ItemStack.EMPTY;
 
-        Optional<RecipeHolder<CraftingRecipe>> possibleRecipe = player.getServer().getRecipeManager()
+        Optional<RecipeHolder<CraftingRecipe>> possibleRecipe = player.level().getServer().getRecipeManager()
                 .getRecipeFor(RecipeType.CRAFTING, getCraftSlots().asCraftInput(), level);
         if (possibleRecipe.isPresent()) {
             RecipeHolder<CraftingRecipe> recipe = possibleRecipe.get();
             if (setRecipeUsed(getItemHandler(), player, recipe)) {
-                result = recipe.value().assemble(getCraftSlots().asCraftInput(), level.registryAccess());
+                result = recipe.value().assemble(getCraftSlots().asCraftInput());
                 if (!result.isItemEnabled(level.enabledFeatures())) {
                     result = ItemStack.EMPTY;
                 }
@@ -241,7 +240,7 @@ public class ModularCraftingSlot extends ModularSlot {
 
     protected boolean setRecipeUsed(@Nullable Object possibleRecipeHolder, ServerPlayer player, RecipeHolder<CraftingRecipe> recipe) {
         if (!recipe.value().isSpecial() && player.level().getGameRules().get(GameRules.LIMITED_CRAFTING) &&
-                !player.getRecipeBook().contains(recipe)) {
+                !player.getRecipeBook().contains(recipe.id())) {
             return false;
         }
 

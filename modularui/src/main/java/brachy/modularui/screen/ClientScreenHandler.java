@@ -157,8 +157,8 @@ public class ClientScreenHandler {
 
     @SubscribeEvent
     public static void onScreenCharTyped(ScreenEvent.CharacterTyped.Pre event) {
-        char codePoint = event.getCodePoint();
-        int modifiers = event.getModifiers();
+        char codePoint = (char) event.getCodePoint();
+        int modifiers = 0;
         defaultContext.updateTypedChar(codePoint, modifiers);
         if (validateGui(event.getScreen())) currentScreen.getContext().updateTypedChar(codePoint, modifiers);
 
@@ -221,7 +221,7 @@ public class ClientScreenHandler {
     public static void onScreenRenderLow(ScreenEvent.Render.Pre event) {
         int mx = event.getMouseX(), my = event.getMouseY();
         float pt = event.getPartialTick();
-        GuiGraphicsExtractor gc = event.getGuiGraphicsExtractor();
+        GuiGraphicsExtractor gc = event.getGuiGraphics();
         defaultContext.setGraphics(gc);
         defaultContext.updateState(mx, my, pt);
         defaultContext.reset();
@@ -235,7 +235,7 @@ public class ClientScreenHandler {
 
     @SubscribeEvent
     public static void onScreenRenderNormal(ScreenEvent.Render.Post event) {
-        OverlayStack.draw(event.getGuiGraphicsExtractor(), event.getMouseX(), event.getMouseY(), event.getPartialTick());
+        OverlayStack.draw(event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick());
     }
 
     @SubscribeEvent
@@ -371,7 +371,7 @@ public class ClientScreenHandler {
         }
         if (!hasLevel) return false; // E only closes in world
         if (Minecraft.getInstance().options.keyInventory
-                .isActiveAndMatches(InputConstants.getKey(keyCode, scanCode)) && !RecipeViewerHandler.getCurrent().isSearchFocused()) {
+                .matches(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers)) && !RecipeViewerHandler.getCurrent().isSearchFocused()) {
             dropOrClosePanel();
             return true;
         }
@@ -388,7 +388,9 @@ public class ClientScreenHandler {
 
     public static void dragSlot(int button, double dragX, double dragY) {
         ModularGuiContext ctx = currentScreen.getContext();
-        getMCScreen().mouseDragged(ctx.getMouseX(), ctx.getMouseY(), button, dragX, dragY);
+        getMCScreen().mouseDragged(new net.minecraft.client.input.MouseButtonEvent(
+                ctx.getAbsMouseX(), ctx.getAbsMouseY(),
+                new net.minecraft.client.input.MouseButtonInfo(button, ctx.getLastKeyModifiers())), dragX, dragY);
     }
 
     public static void clickSlot(ModularScreen ms, Slot slot) {
@@ -402,7 +404,9 @@ public class ClientScreenHandler {
                 acc.setChildren(Collections.emptyList());
                 // set clicked slot to make sure the container clicks the desired slot
                 clickableScreen.modularui$setClickedSlot(slot);
-                screen.mouseClicked(ctx.getMouseX(), ctx.getMouseY(), ctx.getLastMouseButton());
+                screen.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(
+                        ctx.getMouseX(), ctx.getMouseY(),
+                        new net.minecraft.client.input.MouseButtonInfo(ctx.getLastMouseButton(), ctx.getLastKeyModifiers())), false);
             } finally {
                 // undo modifications
                 clickableScreen.modularui$setClickedSlot(null);
@@ -414,7 +418,9 @@ public class ClientScreenHandler {
     public static void releaseSlot() {
         if (hasScreen() && getMCScreen() != null) {
             ModularGuiContext ctx = currentScreen.getContext();
-            getMCScreen().mouseReleased(ctx.getMouseX(), ctx.getMouseY(), ctx.getLastMouseButton());
+            getMCScreen().mouseReleased(new net.minecraft.client.input.MouseButtonEvent(
+                    ctx.getMouseX(), ctx.getMouseY(),
+                    new net.minecraft.client.input.MouseButtonInfo(ctx.getLastMouseButton(), ctx.getLastKeyModifiers())));
         }
     }
 
@@ -434,7 +440,8 @@ public class ClientScreenHandler {
                     Color.withAlpha(color, (int) (startAlpha * alpha)),
                     Color.withAlpha(color, (int) (endAlpha * alpha)));
             // noinspection removal,UnstableApiUsage
-            NeoForge.EVENT_BUS.post(new ScreenEvent.BackgroundRendered(screen, guiGraphics));
+            NeoForge.EVENT_BUS.post(new ScreenEvent.Render.Background(screen, guiGraphics, screen.getMinecraft().getWindow().getGuiScaledWidth(),
+                    screen.getMinecraft().getWindow().getGuiScaledHeight(), 0));
         }
     }
 
@@ -452,13 +459,8 @@ public class ClientScreenHandler {
         muiScreen.getContext().reset();
         muiScreen.getContext().getStencil().push(muiScreen.getScreenArea());
         muiScreen.render(graphics, mouseX, mouseY, partialTicks);
-        RenderSystem.disableDepthTest();
         drawVanillaElements(graphics, mcScreen, mouseX, mouseY, partialTicks);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        Lighting.setupForFlatItems();
         muiScreen.drawForeground(graphics);
-        RenderSystem.enableDepthTest();
-        Lighting.setupFor3DItems();
         muiScreen.getContext().getStencil().pop();
     }
 
@@ -469,19 +471,15 @@ public class ClientScreenHandler {
         Stencil.reset();
         muiScreen.getContext().reset();
         muiScreen.getContext().getStencil().push(muiScreen.getScreenArea());
-        mcScreen.renderBackground(graphics, mouseX, mouseY, partialTicks);
+        mcScreen.extractBackground(graphics, mouseX, mouseY, partialTicks);
         int x = mcScreen.getGuiLeft();
         int y = mcScreen.getGuiTop();
 
-        acc.invokeRenderBg(graphics, partialTicks, mouseX, mouseY);
         muiScreen.render(graphics, mouseX, mouseY, partialTicks);
 
-        RenderSystem.disableDepthTest();
         // mainly for invtweaks compat
         drawVanillaElements(graphics, mcScreen, mouseX, mouseY, partialTicks);
         acc.setHoveredSlot(null);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        Lighting.setupForFlatItems();
         // acc.invokeRenderLabels(graphics, mouseX, mouseY);
 
         acc.setHoveredSlot(null);
@@ -490,9 +488,8 @@ public class ClientScreenHandler {
             acc.setHoveredSlot(vanillaSlot.getVanillaSlot());
         }
 
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, 0);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(x, y);
         // noinspection UnstableApiUsage
         NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(mcScreen, graphics, mouseX, mouseY));
 
@@ -514,7 +511,7 @@ public class ClientScreenHandler {
 
             drawFloatingItemStack(mcScreen, graphics, draggingItem, mouseX - x - xOffset, mouseY - y - yOffset, text);
         }
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
 
         if (!acc.getSnapbackItem().isEmpty()) {
             float delta = (float) (Util.getMillis() - acc.getSnapbackTime()) / 100.0F;
@@ -533,22 +530,16 @@ public class ClientScreenHandler {
 
         muiScreen.drawForeground(graphics);
 
-        RenderSystem.enableDepthTest();
-        Lighting.setupFor3DItems();
         muiScreen.getContext().getStencil().pop();
     }
 
     private static void drawFloatingItemStack(AbstractContainerScreen<?> mcScreen, GuiGraphicsExtractor graphics,
                                               ItemStack stack, int x, int y, String altText) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(0.0F, 0.0F, 232.0F);
-
         var font = IClientItemExtensions.of(stack).getFont(stack, IClientItemExtensions.FontContext.ITEM_COUNT);
         if (font == null) font = ((ScreenAccessor) mcScreen).getFont();
-        graphics.renderItem(stack, x, y);
-        graphics.renderItemDecorations(font, stack,
+        graphics.item(stack, x, y, 232);
+        graphics.itemDecorations(font, stack,
                 x, y - (((AbstractContainerScreenAccessor) mcScreen).getDraggingItem().isEmpty() ? 0 : 8), altText);
-        graphics.pose().popPose();
     }
 
     @ApiStatus.Internal
@@ -560,7 +551,7 @@ public class ClientScreenHandler {
     public static void drawVanillaElements(GuiGraphicsExtractor graphics, Screen mcScreen, int mouseX, int mouseY, float partialTicks, Predicate<Renderable> filter) {
         for (Renderable renderable : mcScreen.renderables) {
             if (filter.test(renderable)) {
-                renderable.render(graphics, mouseX, mouseY, partialTicks);
+                renderable.extractRenderState(graphics, mouseX, mouseY, partialTicks);
             }
         }
     }
@@ -576,11 +567,7 @@ public class ClientScreenHandler {
                 muiScreen = fallback;
             }
         }
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableBlend();
-
         ModularGuiContext context = muiScreen.getContext();
-        Matrix4f pose = graphics.pose().last().pose();
 
         int mouseX = context.getAbsMouseX(), mouseY = context.getAbsMouseY();
         int screenH = muiScreen.getScreenArea().height;
@@ -620,7 +607,7 @@ public class ClientScreenHandler {
 
             IWidget hovered = locatedHovered.getElement();
             locatedHovered.applyMatrix(context);
-            graphics.pose().pushPose();
+            graphics.pose().pushMatrix();
             context.applyTo(graphics.pose());
 
             Area area = hovered.getArea();
@@ -633,7 +620,7 @@ public class ClientScreenHandler {
                 GuiDraw.drawBorderOutsideXYWH(graphics, -area.rx, -area.ry, parent.getArea().width,
                         parent.getArea().height, scale, Color.withAlpha(outlineColor, 0.3f));
             }
-            graphics.pose().popPose();
+            graphics.pose().popMatrix();
             locatedHovered.unapplyMatrix(context);
             if (showHovered) {
                 if (ModularUIConfig.Dev.showWidgetTheme()) {
@@ -737,7 +724,6 @@ public class ClientScreenHandler {
         }
         // dot at mouse pos
         GuiDraw.drawRect(graphics, mouseX, mouseY, 1, 1, ModularUIConfig.Dev.cursorColor());
-        graphics.setColor(1f, 1f, 1f, 1f);
     }
 
     private static void drawSegmentLine(GuiGraphicsExtractor graphics, int y, float scale, int color) {

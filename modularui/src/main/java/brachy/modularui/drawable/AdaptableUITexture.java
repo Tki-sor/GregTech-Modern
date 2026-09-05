@@ -69,13 +69,7 @@ public class AdaptableUITexture extends UITexture {
             super.draw(context, x, y, width, height);
             return;
         }
-        if (this.nonOpaque) {
-            RenderSystem.enableBlend();
-        } else {
-            RenderSystem.disableBlend();
-        }
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, this.location);
+        GuiDraw.setTexture(this.location);
 
         float uBl = this.bl * 1f / this.imageWidth, uBr = this.br * 1f / this.imageWidth;
         float vBt = this.bt * 1f / this.imageHeight, vBb = this.bb * 1f / this.imageHeight;
@@ -124,7 +118,6 @@ public class AdaptableUITexture extends UITexture {
             GuiDraw.drawTexture(pose, x + this.bl, y + this.bt, x1 - this.br, y1 - this.bb, uInnerStart, vInnerStart,
                     uInnerEnd, vInnerEnd);
         }
-        RenderSystem.disableBlend();
     }
 
     public void drawTiled(GuiContext context, float x, float y, float width, float height) {
@@ -135,13 +128,7 @@ public class AdaptableUITexture extends UITexture {
                     this.imageWidth, this.imageHeight, 0);
             return;
         }
-        if (this.nonOpaque) {
-            RenderSystem.enableBlend();
-        } else {
-            RenderSystem.disableBlend();
-        }
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, this.location);
+        GuiDraw.setTexture(this.location);
 
         float uBl = this.bl * 1f / this.imageWidth, uBr = this.br * 1f / this.imageWidth;
         float vBt = this.bt * 1f / this.imageHeight, vBb = this.bb * 1f / this.imageHeight;
@@ -202,7 +189,6 @@ public class AdaptableUITexture extends UITexture {
                     height - this.bt - this.bb, uInnerStart, vInnerStart, uInnerEnd, vInnerEnd,
                     tw - this.bl - this.br, th - this.bt - this.bb, 0);
         }
-        RenderSystem.disableBlend();
     }
 
     @Override

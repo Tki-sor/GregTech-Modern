@@ -140,7 +140,6 @@ public class TextFieldRenderer extends TextRenderer {
     @OnlyIn(Dist.CLIENT)
     public void drawMarked(GuiGraphicsExtractor graphics, float y0, float x0, float x1) {
         y0 -= 1;
-        RenderSystem.enableBlend();
         GuiDraw.drawRect(graphics, x0, y0, x1 - x0, getFontHeight(), this.markedColor);
     }
 
@@ -149,9 +148,9 @@ public class TextFieldRenderer extends TextRenderer {
         x0 = (x0 - 0.8f) / this.scale;
         y0 = (y0 - 1) / this.scale;
 
-        graphics.pose().pushPose();
-        graphics.pose().scale(this.scale, this.scale, 1);
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(this.scale, this.scale);
         GuiDraw.drawRect(graphics, x0, y0, 0.6f, 9, this.cursorColor);
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 }

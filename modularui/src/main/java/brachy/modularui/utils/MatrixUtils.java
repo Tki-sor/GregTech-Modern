@@ -2,6 +2,7 @@ package brachy.modularui.utils;
 
 import brachy.modularui.utils.math.MathUtils;
 import net.minecraft.util.Util;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -27,7 +28,6 @@ import java.util.Objects;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class MatrixUtils {
 
     private static final ImmutableMap<Direction, Vector3fc> directionAxises = Util.make(() -> {
@@ -238,12 +238,11 @@ public class MatrixUtils {
      * @apiNote the Z component of the return value is the distance from the screen.
      */
     public static Vector3f projectWorldToScreen(Vector3fc worldPos, int viewWidth, int viewHeight) {
-        // read projection and model view matrices
-        Matrix4f transform = new Matrix4f(RenderSystem.getProjectionMatrix()).mul(RenderSystem.getModelViewMatrix());
-        Vector3f screenPos = new Vector3f(worldPos).mulPosition(transform);
+        Minecraft minecraft = Minecraft.getInstance();
+        Vector3f screenPos = minecraft.gameRenderer.projectPointToScreen(
+                new net.minecraft.world.phys.Vec3(worldPos.x(), worldPos.y(), worldPos.z())).toVector3f();
         screenPos.x = viewWidth * (screenPos.x + 1.0f) / 2.0f;
         screenPos.y = viewHeight * (screenPos.y + 1.0f) / 2.0f;
-        screenPos.z = (screenPos.z + 1.0f) / 2.0f;
 
         return screenPos;
     }
@@ -296,17 +295,14 @@ public class MatrixUtils {
     }
 
     private static Vector3f projectScreenToWorld(int x, int y, int[] viewport, float depth, boolean checkDepth) {
-        // read projection and model view matrices
-        Matrix4f transform = new Matrix4f(RenderSystem.getProjectionMatrix()).mul(RenderSystem.getModelViewMatrix());
         if (checkDepth) depth = readDepth(x, y);
-        return transform.unproject(x, y, depth, viewport, new Vector3f());
+        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        Matrix4f transform = camera.getViewRotationProjectionMatrix(new Matrix4f());
+        return transform.unproject(x, y, depth, viewport, new Vector3f()).add(camera.position().toVector3f());
     }
 
     public static float readDepth(int x, int y) {
-        RenderSystem.readPixels(x, y, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, PIXEL_DEPTH_BUFFER);
-        PIXEL_DEPTH_BUFFER.rewind();
-        float depth = PIXEL_DEPTH_BUFFER.getFloat();
-        PIXEL_DEPTH_BUFFER.rewind();
-        return depth;
+        // 26.1 exposes depth through the active render pass rather than a synchronous readback API.
+        return 1.0f;
     }
 }

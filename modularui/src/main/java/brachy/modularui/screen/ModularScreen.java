@@ -347,15 +347,12 @@ public class ModularScreen implements Renderable {
      * <p>
      * Do not call, only override!
      */
-    @Override
     public void render(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (!this.context.getUItype().isScreen) {
             checkManualUpdate(); // embeds can't trigger frame updates the proper way
         }
         this.context.setGraphics(graphics);
         this.context.updateState(mouseX, mouseY, partialTick);
-        Lighting.setupForFlatItems();
-
         this.context.pushViewport(null, this.context.getScreenArea());
         for (ModularPanel<?> panel : this.panelManager.getReverseOpenPanels()) {
             this.context.updateZ(0);
@@ -365,13 +362,16 @@ public class ModularScreen implements Renderable {
             }
             WidgetTree.drawTree(panel, this.context);
             // clear depth, so that anything drawn next will be guaranteed to be on top
-            RenderSystem.clearDepth(1);
-            RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
         }
         this.context.updateZ(0);
         this.context.popViewport(null);
 
         this.context.postRenderCallbacks.forEach(element -> element.accept(this.context));
+    }
+
+    @Override
+    public void extractRenderState(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        render(graphics, mouseX, mouseY, partialTick);
     }
 
     /**
@@ -381,9 +381,6 @@ public class ModularScreen implements Renderable {
      */
     public void drawForeground(GuiGraphicsExtractor graphics) {
         this.context.setGraphics(graphics);
-        Lighting.setupForFlatItems();
-        RenderSystem.disableDepthTest();
-
         this.context.pushViewport(null, this.context.getScreenArea());
         for (ModularPanel<?> panel : this.panelManager.getReverseOpenPanels()) {
             this.context.updateZ(100);

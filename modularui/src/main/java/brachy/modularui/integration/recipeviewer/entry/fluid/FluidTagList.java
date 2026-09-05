@@ -1,6 +1,5 @@
 package brachy.modularui.integration.recipeviewer.entry.fluid;
 
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
@@ -13,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class FluidTagList implements FluidEntryList {
 
@@ -48,7 +48,7 @@ public final class FluidTagList implements FluidEntryList {
     public record FluidTagEntry(@NotNull TagKey<Fluid> tag, int amount, @NotNull DataComponentPatch componentPatch) {
 
         public Stream<FluidStack> stacks() {
-            return BuiltInRegistries.FLUID.getTag(tag).map(HolderSet.ListBacked::stream).orElseGet(Stream::empty)
+            return StreamSupport.stream(BuiltInRegistries.FLUID.getTagOrEmpty(tag).spliterator(), false)
                     .map(holder -> new FluidStack(holder, amount, componentPatch));
         }
     }

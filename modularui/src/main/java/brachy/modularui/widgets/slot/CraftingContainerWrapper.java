@@ -102,7 +102,6 @@ public class CraftingContainerWrapper extends TransientCraftingContainer {
         }
     }
 
-    @Override
     public @NotNull List<ItemStack> getItems() {
         List<ItemStack> items = new ArrayList<>();
         for (int i = 0; i < this.size; i++) {
@@ -111,10 +110,12 @@ public class CraftingContainerWrapper extends TransientCraftingContainer {
         return items;
     }
 
-    @Override
     public void fillStackedContents(@NotNull StackedContents contents) {
         for (int i = 0; i < this.size; i++) {
-            contents.accountStack(this.getItem(i));
+            ItemStack stack = this.getItem(i);
+            if (!stack.isEmpty()) {
+                contents.account(stack, stack.getCount());
+            }
         }
     }
 

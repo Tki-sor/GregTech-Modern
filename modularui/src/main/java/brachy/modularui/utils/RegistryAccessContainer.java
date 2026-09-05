@@ -9,6 +9,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.flag.FeatureFlags;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
 import lombok.Getter;
@@ -23,7 +25,6 @@ import java.util.stream.Stream;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 @Accessors(fluent = true)
 public final class RegistryAccessContainer implements ICondition.IContext, RegistryAccess.Frozen {
 
@@ -62,13 +63,23 @@ public final class RegistryAccessContainer implements ICondition.IContext, Regis
     // region tag context methods
 
     @Override
+    public <T> boolean isTagLoaded(TagKey<T> key) {
+        return tagContext.isTagLoaded(key);
+    }
+
+    @Override
     public <T> Collection<Holder<T>> getTag(TagKey<T> key) {
         return tagContext.getTag(key);
     }
 
     @Override
-    public <T> Map<Identifier, Collection<Holder<T>>> getAllTags(ResourceKey<? extends Registry<T>> registry) {
-        return tagContext.getAllTags(registry);
+    public RegistryAccess registryAccess() {
+        return this.access;
+    }
+
+    @Override
+    public FeatureFlagSet enabledFeatures() {
+        return FeatureFlags.DEFAULT_FLAGS;
     }
 
     // endregion
@@ -76,18 +87,8 @@ public final class RegistryAccessContainer implements ICondition.IContext, Regis
     // region registry access methods
 
     @Override
-    public <E> Optional<Registry<E>> registry(ResourceKey<? extends Registry<? extends E>> registryKey) {
-        return access.registry(registryKey);
-    }
-
-    @Override
-    public <T> Optional<HolderLookup.RegistryLookup<T>> lookup(ResourceKey<? extends Registry<? extends T>> registryKey) {
+    public <E> Optional<Registry<E>> lookup(ResourceKey<? extends Registry<? extends E>> registryKey) {
         return access.lookup(registryKey);
-    }
-
-    @Override
-    public <E> Registry<E> registryOrThrow(ResourceKey<? extends Registry<? extends E>> registryKey) {
-        return access.registryOrThrow(registryKey);
     }
 
     @Override
@@ -96,8 +97,8 @@ public final class RegistryAccessContainer implements ICondition.IContext, Regis
     }
 
     @Override
-    public Stream<ResourceKey<? extends Registry<?>>> listRegistries() {
-        return access.listRegistries();
+    public Stream<ResourceKey<? extends Registry<?>>> listRegistryKeys() {
+        return access.listRegistryKeys();
     }
 
     // endregion

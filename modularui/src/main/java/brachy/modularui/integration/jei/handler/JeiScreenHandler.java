@@ -21,6 +21,7 @@ import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.gui.handlers.IGuiProperties;
 import mezz.jei.api.gui.handlers.IScreenHandler;
+import mezz.jei.api.gui.builder.IClickableIngredientFactory;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.runtime.IClickableIngredient;
@@ -169,6 +170,12 @@ public class JeiScreenHandler<T extends Screen & IMuiScreen> extends RecipeViewe
                 return (Optional<IClickableIngredient<?>>) ingredient;
             }
             return Optional.empty();
+        }
+
+        @Override
+        public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(
+                IClickableIngredientFactory factory, T1 screen, double mouseX, double mouseY) {
+            return getClickableIngredientUnderMouse(screen, mouseX, mouseY);
         }
 
         private <I> I mapFirstIngredient(IngredientProvider<I> provider) {

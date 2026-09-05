@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
 public class CycleItemEntryHandler implements IItemHandlerModifiable {
 
     @Getter

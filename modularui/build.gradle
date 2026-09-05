@@ -29,7 +29,6 @@ repositories {
 
 sourceSets {
     main.resources.srcDir 'src/generated/resources'
-
     // EMI has no verified 26.1.2 artifact. Its optional integration is cut
     // from this target while JEI and REI remain complete public surfaces.
     main.java {
@@ -48,6 +47,35 @@ sourceSets {
         compileClasspath += main.output + main.compileClasspath
         runtimeClasspath += main.output + main.runtimeClasspath
     }
+}
+
+def prepareDelombokMain = tasks.register('prepareDelombokMain', Sync) {
+    from('src/main/java') {
+        exclude 'brachy/modularui/integration/emi/**'
+        exclude 'brachy/modularui/core/mixins/emi/**'
+        exclude 'brachy/modularui/integration/embeddium/**'
+        exclude 'brachy/modularui/test/**'
+    }
+    into(layout.buildDirectory.dir('tmp/delombok/input'))
+}
+
+def delombokMain = tasks.register('delombokMain', JavaExec) {
+    description = 'Generate concrete Java sources from the Lombok-annotated main sources.'
+    group = 'lombok'
+    def outputDirectory = layout.buildDirectory.dir('generated/delombok/main').get().asFile
+    dependsOn(prepareDelombokMain)
+    classpath = configurations.annotationProcessor + sourceSets.main.compileClasspath
+    mainClass = 'lombok.launch.Main'
+    args 'delombok', layout.buildDirectory.dir('tmp/delombok/input').get().asFile, '-d', outputDirectory, '-f', 'pretty', '-q'
+    inputs.dir(layout.buildDirectory.dir('tmp/delombok/input'))
+    outputs.dir(outputDirectory)
+    doFirst {
+        delete(outputDirectory)
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn(delombokMain)
 }
 
 configurations {
@@ -149,13 +177,21 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.compilerArgs += ['-Xmaxerrs', '200']
+    options.compilerArgs += ['-Xmaxerrs', '2000']
     options.compilerArgs << '-Xlint:-removal'
-    doFirst {
-        options.compilerArgs += ['-processor', 'lombok.launch.AnnotationProcessorHider$AnnotationProcessor']
-    }
+    options.fork = true
+    options.forkOptions.executable = javaToolchains.launcherFor(java.toolchain).get().metadata.installationPath.asFile
+            .toPath().resolve('bin').resolve('javac.exe').toString()
 }
 
+tasks.named('compileJava', JavaCompile) {
+    setSource(fileTree(layout.buildDirectory.dir('generated/delombok/main')) {
+        exclude 'brachy/modularui/integration/emi/**'
+        exclude 'brachy/modularui/core/mixins/emi/**'
+        exclude 'brachy/modularui/integration/embeddium/**'
+        exclude 'brachy/modularui/test/**'
+    })
+}
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     def neoVersion = libs.versions.neoForge.get()

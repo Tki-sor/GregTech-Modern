@@ -1,59 +1,77 @@
 package brachy.modularui.utils;
 
-import net.minecraft.util.Util;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.Identifier;
+import brachy.modularui.ModularUI;
+
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.function.Function;
 
 @OnlyIn(Dist.CLIENT)
-public class MUIRenderTypes extends RenderType {
+public final class MUIRenderTypes {
 
-    private static final Function<Identifier, RenderType> GUI_TEXTURE = Util.memoize((texture) -> {
-        return create("gui_texture", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS,
-                RenderType.TRANSIENT_BUFFER_SIZE, false, true,
-                CompositeState.builder()
-                        .setShaderState(RENDERTYPE_TEXT_SHADER)
-                        .setTextureState(new TextureStateShard(texture, false, false))
-                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setLightmapState(LIGHTMAP)
-                        .createCompositeState(false));
-    });
+    private static final RenderPipeline GUI_TEXTURED_PIPELINE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+            .withLocation(ModularUI.id("pipeline/gui_textured"))
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+            .build();
+    private static final RenderPipeline GUI_TRIANGLE_STRIP_PIPELINE = createGuiPipeline(
+            "gui_triangle_strip", VertexFormat.Mode.TRIANGLE_STRIP);
+    private static final RenderPipeline GUI_TRIANGLE_FAN_PIPELINE = createGuiPipeline(
+            "gui_triangle_fan", VertexFormat.Mode.TRIANGLE_FAN);
+    private static final RenderPipeline GUI_POSITION_QUADS_PIPELINE = createGuiPipeline(
+            "gui_position_quads", VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+    private static final RenderPipeline GUI_POSITION_COLOR_QUADS_PIPELINE = createGuiPipeline(
+            "gui_position_color_quads", VertexFormat.Mode.QUADS);
+    private static final RenderPipeline GUI_POSITION_TRIANGLE_FAN_PIPELINE = createGuiPipeline(
+            "gui_position_triangle_fan", VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION);
+    private static final RenderPipeline GUI_POSITION_TRIANGLE_STRIP_PIPELINE = createGuiPipeline(
+            "gui_position_triangle_strip", VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION);
 
-    private static final RenderType GUI_TRIANGLE_STRIP = RenderType.create("gui_triangle_strip",
-            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, false,
-            CompositeState.builder()
-                    .setShaderState(RenderStateShard.RENDERTYPE_GUI_SHADER)
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
-                    .createCompositeState(false));
+    private static final Function<Identifier, RenderType> GUI_TEXTURE = texture -> RenderType.create(
+            "gui_texture",
+            RenderSetup.builder(GUI_TEXTURED_PIPELINE)
+                    .withTexture("Sampler0", texture)
+                    .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                    .createRenderSetup());
+    private static final RenderType GUI_TRIANGLE_STRIP = createRenderType(
+            "gui_triangle_strip", GUI_TRIANGLE_STRIP_PIPELINE);
+    private static final RenderType GUI_TRIANGLE_FAN = createRenderType(
+            "gui_triangle_fan", GUI_TRIANGLE_FAN_PIPELINE);
+    private static final RenderType GUI_OVERLAY_TRIANGLE_FAN = createRenderType(
+            "gui_overlay_triangle_fan", GUI_TRIANGLE_FAN_PIPELINE);
+    private static final RenderType GUI_POSITION_QUADS = createRenderType(
+            "gui_position_quads", GUI_POSITION_QUADS_PIPELINE);
+    private static final RenderType GUI_POSITION_COLOR_QUADS = createRenderType(
+            "gui_position_color_quads", GUI_POSITION_COLOR_QUADS_PIPELINE);
+    private static final RenderType GUI_POSITION_TRIANGLE_FAN = createRenderType(
+            "gui_position_triangle_fan", GUI_POSITION_TRIANGLE_FAN_PIPELINE);
+    private static final RenderType GUI_POSITION_TRIANGLE_STRIP = createRenderType(
+            "gui_position_triangle_strip", GUI_POSITION_TRIANGLE_STRIP_PIPELINE);
 
-    private static final RenderType GUI_TRIANGLE_FAN = RenderType.create("gui_triangle_fan",
-            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_FAN, 256, false, false,
-            CompositeState.builder()
-                    .setShaderState(RenderStateShard.RENDERTYPE_GUI_SHADER)
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
-                    .createCompositeState(false));
+    private MUIRenderTypes() {}
 
-    private static final RenderType GUI_OVERLAY_TRIANGLE_FAN = RenderType.create("gui_overlay_triangle_fan",
-            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_FAN, 256, false, false,
-            CompositeState.builder()
-                    .setShaderState(RenderStateShard.RENDERTYPE_GUI_OVERLAY_SHADER)
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
-                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-                    .createCompositeState(false));
+    private static RenderPipeline createGuiPipeline(String name, VertexFormat.Mode mode) {
+        return createGuiPipeline(name, mode, DefaultVertexFormat.POSITION_COLOR);
+    }
 
+    private static RenderPipeline createGuiPipeline(String name, VertexFormat.Mode mode, VertexFormat format) {
+        return RenderPipeline.builder(RenderPipelines.GUI_SNIPPET)
+                .withLocation(ModularUI.id("pipeline/" + name))
+                .withVertexFormat(format, mode)
+                .build();
+    }
 
-    private MUIRenderTypes(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize,
-                           boolean affectsCrumbling, boolean sortOnUpload, Runnable setupState, Runnable clearState) {
-        super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setupState, clearState);
+    private static RenderType createRenderType(String name, RenderPipeline pipeline) {
+        return RenderType.create(name, RenderSetup.builder(pipeline)
+                .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+                .createRenderSetup());
     }
 
     public static RenderType guiTexture(Identifier texture) {
@@ -70,5 +88,21 @@ public class MUIRenderTypes extends RenderType {
 
     public static RenderType guiOverlayTriangleFan() {
         return GUI_OVERLAY_TRIANGLE_FAN;
+    }
+
+    public static RenderType guiPositionQuads() {
+        return GUI_POSITION_QUADS;
+    }
+
+    public static RenderType guiPositionColorQuads() {
+        return GUI_POSITION_COLOR_QUADS;
+    }
+
+    public static RenderType guiPositionTriangleFan() {
+        return GUI_POSITION_TRIANGLE_FAN;
+    }
+
+    public static RenderType guiPositionTriangleStrip() {
+        return GUI_POSITION_TRIANGLE_STRIP;
     }
 }

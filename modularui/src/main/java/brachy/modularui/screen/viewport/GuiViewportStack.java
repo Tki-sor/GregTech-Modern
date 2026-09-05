@@ -65,6 +65,35 @@ public class GuiViewportStack implements IViewportStack {
         updateViewport(false);
     }
 
+    /** Compatibility name retained for drawable code written against the vanilla pose-stack vocabulary. */
+    public GuiViewportStack pushPose() {
+        pushMatrix();
+        return this;
+    }
+
+    /** Compatibility name retained for drawable code written against the vanilla pose-stack vocabulary. */
+    public GuiViewportStack popPose() {
+        popMatrix();
+        return this;
+    }
+
+    public GuiViewportStack graphicsPose() {
+        return this;
+    }
+
+    public TransformationMatrix last() {
+        return this.top == null ? TransformationMatrix.EMPTY : this.top;
+    }
+
+    public void applyTo(org.joml.Matrix3x2fStack target) {
+        if (this.top == null) {
+            target.identity();
+            return;
+        }
+        Matrix4f matrix = this.top.getMatrix();
+        target.identity().translate(matrix.m30(), matrix.m31());
+    }
+
     private TransformationMatrix newMatrix() {
         return !this.matrixPool.isEmpty() ? this.matrixPool.pop() : new TransformationMatrix();
     }
@@ -184,6 +213,10 @@ public class GuiViewportStack implements IViewportStack {
         this.top.markDirty();
     }
 
+    public void scale(float x, float y, float z) {
+        scale(x, y);
+    }
+
     @Override
     public void multiply(Matrix4f matrix) {
         checkViewport();
@@ -252,7 +285,6 @@ public class GuiViewportStack implements IViewportStack {
         return this.top == null ? dest.set(vec) : this.top.unTransform(vec, dest);
     }
 
-    @Override
     @Override
     public TransformationMatrix peek() {
         return this.top;

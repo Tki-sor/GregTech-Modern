@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import com.mojang.datafixers.util.Pair;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -148,8 +147,7 @@ public class ModularSlot extends SlotItemHandler {
 
     public void onCraftShiftClick(Player playerIn, ItemStack itemStack) {}
 
-    @Override
-    public @Nullable Pair<Identifier, Identifier> getNoItemIcon() {
+    public @Nullable Identifier getNoItemIcon() {
         return null;
     }
 

@@ -9,8 +9,6 @@ import brachy.modularui.screen.event.OpenScreenEvent;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.neoforged.neoforge.common.NeoForge;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -64,17 +62,12 @@ public class OverlayStack {
             screen.getContext().setGraphics(graphics);
             screen.getContext().updateState(mouseX, mouseY, partialTicks);
             screen.getContext().reset();
-            RenderSystem.enableBlend();
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
             screen.render(graphics, mouseX, mouseY, partialTicks);
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
             screen.drawForeground(graphics);
             if (screen.getContext().isHovered()) hovered = screen;
             fallback = screen;
         }
         ClientScreenHandler.drawDebugScreen(graphics, hovered, fallback);
-        RenderSystem.enableDepthTest();
-        Lighting.setupFor3DItems();
     }
 
     public static void open(ModularScreen screen) {
