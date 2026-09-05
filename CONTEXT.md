@@ -17,3 +17,4 @@ GregTech Modern（GTM）1.20.1 Forge fork 向 MC 26.1.2 / NeoForge 26.x 移植�
 - **砍件**：按依赖政策被暂时砍掉的依赖（如 EMI、官方 Create、Embeddium、GameStages）。砍的是依赖坐标与其牵连代码，不是功能承诺；回补是 out of scope。
 - **阻塞性依赖**：本轮决议为**无**——没有"缺了就停下等"的项，硬依赖走自移植路线。
 - **翻译手册**：上游 1.20.1→1.21 分支的 Forge→NeoForge 迁移 diff，复用为 26.1 移植的参照实现。
+- **用户仓库边界**：所有 issue、PR、评论、标签、release 和其他远程写操作只允许发生在用户自有仓库 `Tki-sor/GregTech-Modern`；`GregTechCEu/GregTech-Modern` 只读，用于 fetch、比较和翻译上游提交。

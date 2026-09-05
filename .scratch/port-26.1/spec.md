@@ -56,6 +56,7 @@ Status: ready-for-agent
 - The GTM baseline is the current pristine 1.20.1 Forge source. The exact upstream `1.20.1` commit SHA used at bootstrap must be recorded before port changes begin.
 - The upstream `1.20.1` line is the synchronization source. The upstream `1.21` line is a migration reference only; it is not the 26.1.2 implementation base.
 - Synchronization uses an independent 26.1.2 port branch and translated commit groups. A source update is rebased into the port workflow, then manually translated and validated. MUI changes remain separate from GTM synchronization changes.
+- All remote write operations are restricted to the user's owned repository `Tki-sor/GregTech-Modern`. The upstream `GregTechCEu/GregTech-Modern` repository is read-only: use it only for fetch, comparison, documentation and translated source updates. Never create or modify upstream issues, pull requests, comments, labels, releases or branches.
 - Registrate is consumed as `com.tterrag.registrate:Registrate:MC26.1-1.5.0` from `https://maven.gegy.dev/releases/`. The MC 26.2-only `26.2-1.6.0` release is not used.
 - Configuration is consumed as `dev.toma.configuration:configuration-neoforge:4.1.2+26.1.2` from the Toma Repsy repository, with its API and initialization behavior validated during the build.
 - MixinExtras is not added as a separate old Forge dependency when the target NeoForge toolchain already provides the required support. Any explicit mixin annotation processing still required by the port must use a 26.1-compatible artifact.
@@ -109,4 +110,5 @@ Status: ready-for-agent
 - Research and decision evidence lives in the [wayfinding map](map.md) and its closed tickets: [dependency pins](issues/02-dep-pinning.md), [translation manual](issues/01-upstream-121-playbook.md), [API gap inventory](issues/05-api-gap-inventory.md), [MUI decision](issues/03-mui-config-decision.md), [cut scope](issues/04-cut-list-scope.md) and [sync workflow](issues/06-sync-workflow.md).
 - The implementation task graph is listed in the map and described by tickets 08 through 17. Each ticket links back to this spec and states its own blocking relationship and acceptance criteria.
 - The repository has no git metadata at the time this spec was written. The first implementation ticket must initialize or attach the repository to the upstream remote and record the baseline commit before any port commit is created.
+- The implementation PR and all tracker communication must remain in `Tki-sor/GregTech-Modern`; the upstream repository must never be used as the PR or issue destination.
 - The repository AI policy requires disclosure of AI tooling and human understanding/review for any contribution, especially anything later proposed upstream.

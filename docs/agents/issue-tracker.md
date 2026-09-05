@@ -2,6 +2,12 @@
 
 Issues and specs for this repo live as markdown files in `.scratch/`.
 
+## Repository boundary
+
+- All issue, pull request, comment, label, release, and tracker write operations belong to the user's own repository only. The current owned repository is `Tki-sor/GregTech-Modern`.
+- The upstream `GregTechCEu/GregTech-Modern` repository is read-only for this effort. Use it only for fetching source, reading issues/docs, comparing branches, and translating upstream commits.
+- Never create or modify an issue, pull request, comment, label, release, or branch in the upstream repository. Draft and final PRs target `Tki-sor/GregTech-Modern` only.
+
 ## Conventions
 
 - One feature per directory: `.scratch/<feature-slug>/`

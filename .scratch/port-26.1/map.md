@@ -12,6 +12,7 @@
 - 各 session 按 ticket 的 Type 调用对应 skill（research / grilling + domain-modeling / prototype）；经过 `CONTEXT.md` 术语时用其词汇，凝固新术语就地更新 `CONTEXT.md`。
 - 本仓库无 `.git`：研究阶段发现记进 ticket 的 `## Findings`；实施阶段由 08 票初始化/接入 upstream，并记录移植基线。
 - 上游有 AI_POLICY.md：凡涉及向 GregTechCEu 上游贡献的内容，执行者须遵守其披露与人类把关义务。
+- 用户仓库边界：所有 issue/PR/评论/标签/release 写操作只在 `Tki-sor/GregTech-Modern`；`GregTechCEu/GregTech-Modern` 仅用于读取、fetch、比较和翻译。
 
 ## Decisions so far
 
