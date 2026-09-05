@@ -1,8 +1,6 @@
 [versions]
 registrate = "MC26.1-1.5.0"
 configuration = "4.1.2+26.1.2"
-mui = "3.3.1-SNAPSHOT"
-
 jei = "29.35.0.94"
 rei = "26.1.819"
 emi = "1.1.24+1.20.1"
@@ -50,8 +48,6 @@ bookshelf = "8551659"
 [libraries]
 registrate          = { module = "com.tterrag.registrate:Registrate", version.ref = "registrate" }
 configuration       = { module = "dev.toma.configuration:configuration-neoforge", version.ref = "configuration" }
-mui                 = { module = "brachy.modularui:modularui-mc1.20.1", version.ref = "mui" }
-
 jei-common-api      = { module = "mezz.jei:jei-26.1.2-common-api", version.ref = "jei" }
 jei-forge-api       = { module = "mezz.jei:jei-26.1.2-neoforge-api", version.ref = "jei" }
 jei-forge-impl      = { module = "mezz.jei:jei-26.1.2-neoforge", version.ref = "jei" }

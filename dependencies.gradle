@@ -10,8 +10,8 @@ dependencies {
     // Math Parser
     compileOnly(libs.evalEx.get())
 
-    // MUI remains on the existing dependency boundary until task 09 ports it.
-    jarJar(implementation(forge.mui.get()))
+    // ModularUI is maintained as an independent source module and embedded at the GTM boundary.
+    jarJar(implementation(project(':modularui')))
 
     // Recipe Viewers
     compileOnly(forge.bundles.jei)

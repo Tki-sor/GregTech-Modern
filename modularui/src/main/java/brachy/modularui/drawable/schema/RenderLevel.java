@@ -1,0 +1,174 @@
+package brachy.modularui.drawable.schema;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.SectionPos;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
+
+import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import javax.annotation.ParametersAreNonnullByDefault;
+
+@ParametersAreNonnullByDefault
+public class RenderLevel implements BlockAndTintGetter {
+
+    @Getter private final ISchema schema;
+    private final Level level;
+    private final RenderFilter renderFilter;
+    private final Thread thread;
+
+    public RenderLevel(ISchema schema, RenderFilter renderFilter) {
+        this.schema = schema;
+        this.level = schema.getLevel();
+        this.renderFilter = renderFilter;
+
+        this.thread = Thread.currentThread();
+    }
+
+    @Nullable
+    public BlockEntity getBlockEntity(BlockPos pos) {
+        BlockState state = this.level.getBlockState(pos);
+        if (!this.renderFilter.shouldRender(pos, state)) {
+            return null;
+        }
+        // avoid the level
+        if (Thread.currentThread() != this.thread) {
+            int chunkX = SectionPos.blockToSectionCoord(pos.getX());
+            int chunkZ = SectionPos.blockToSectionCoord(pos.getZ());
+            var chunk = this.level.getChunkForCollisions(chunkX, chunkZ);
+            if (chunk == null) {
+                return null;
+            }
+            return chunk.getBlockEntity(pos);
+        }
+        return this.level.getBlockEntity(pos);
+    }
+
+    public BlockState getBlockState(BlockPos pos) {
+        BlockState state = this.level.getBlockState(pos);
+        if (!this.renderFilter.shouldRender(pos, state)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return state;
+    }
+
+    public FluidState getFluidState(BlockPos pos) {
+        BlockState state = this.level.getBlockState(pos);
+        if (!this.renderFilter.shouldRender(pos, state)) {
+            return Fluids.EMPTY.defaultFluidState();
+        }
+        return this.level.getFluidState(pos);
+    }
+
+    @Override
+    public net.minecraft.world.level.CardinalLighting cardinalLighting() {
+        return this.level.dimensionType().cardinalLightType().get();
+    }
+
+    @Override
+    public int getBlockTint(BlockPos pos, net.minecraft.world.level.ColorResolver colorResolver) {
+        return colorResolver.getColor(this.level.getBiomeManager().getNoiseBiomeAtPosition(pos).value(), pos.getX(), pos.getZ());
+    }
+
+    @Override
+    public int getHeight() {
+        return this.level.getHeight();
+    }
+
+    @Override
+    public int getMinY() {
+        return this.level.getMinY();
+    }
+
+    public @Nullable ChunkAccess getChunk(int x, int z, ChunkStatus requiredStatus, boolean nonnull) {
+        return level.getChunk(x, z, requiredStatus, nonnull);
+    }
+
+    public boolean hasChunk(int chunkX, int chunkZ) {
+        return level.hasChunk(chunkX, chunkZ);
+    }
+
+    public int getHeight(Heightmap.Types heightmapType, int x, int z) {
+        return level.getHeight(heightmapType, x, z);
+    }
+
+    public int getSkyDarken() {
+        return level.getSkyDarken();
+    }
+
+    public BiomeManager getBiomeManager() {
+        return level.getBiomeManager();
+    }
+
+    public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) {
+        return level.getUncachedNoiseBiome(x, y, z);
+    }
+
+    public boolean isClientSide() {
+        return level.isClientSide();
+    }
+
+    public int getSeaLevel() {
+        return level.getSeaLevel();
+    }
+
+    public DimensionType dimensionType() {
+        return level.dimensionType();
+    }
+
+    public RegistryAccess registryAccess() {
+        return level.registryAccess();
+    }
+
+    public FeatureFlagSet enabledFeatures() {
+        return level.enabledFeatures();
+    }
+
+    public float getShade(Direction direction, boolean shade) {
+        if (!shade) return 1.0f;
+        return switch (direction) {
+            case DOWN -> 0.5f;
+            case UP -> 1.0f;
+            case NORTH, SOUTH -> 0.8f;
+            case WEST, EAST -> 0.6f;
+        };
+    }
+
+    public LevelLightEngine getLightEngine() {
+        return level.getLightEngine();
+    }
+
+    public WorldBorder getWorldBorder() {
+        return level.getWorldBorder();
+    }
+
+    public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, AABB collisionBox) {
+        return level.getEntityCollisions(entity, collisionBox);
+    }
+
+    public long dayTime() {
+        return level.getOverworldClockTime();
+    }
+}
