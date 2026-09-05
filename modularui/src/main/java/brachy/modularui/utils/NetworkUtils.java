@@ -16,6 +16,7 @@ public class NetworkUtils {
 
     public static final Consumer<ByteBuf> EMPTY_PACKET = buffer -> {};
     private static final int MAX_ENCODED = getMaxEncodedUtfLength(Short.MAX_VALUE);
+    public static final int MAX_NESTED_PACKET_BYTES = 1024 * 1024;
 
     public static boolean isClient(Player player) {
         if (player == null) return ModularUI.isClientThread();
@@ -24,17 +25,31 @@ public class NetworkUtils {
 
     public static void writeByteBuf(ByteBuf writeTo, ByteBuf writeFrom) {
         writeFrom.readerIndex(0);
+        if (writeFrom.readableBytes() > MAX_NESTED_PACKET_BYTES) {
+            throw new IllegalArgumentException("Nested packet is too large: " + writeFrom.readableBytes());
+        }
         VarInt.write(writeTo, writeFrom.readableBytes());
         writeTo.writeBytes(writeFrom);
     }
 
     public static void writeRemainingByteBuf(ByteBuf writeTo, ByteBuf writeFrom) {
+        if (writeFrom.readableBytes() > MAX_NESTED_PACKET_BYTES) {
+            throw new IllegalArgumentException("Nested packet is too large: " + writeFrom.readableBytes());
+        }
         VarInt.write(writeTo, writeFrom.readableBytes());
         writeTo.writeBytes(writeFrom.slice());
     }
 
     public static ByteBuf readByteBuf(ByteBuf buf) {
-        return buf.readBytes(VarInt.read(buf));
+        return readByteBuf(buf, MAX_NESTED_PACKET_BYTES);
+    }
+
+    public static ByteBuf readByteBuf(ByteBuf buf, int maximumBytes) {
+        int length = VarInt.read(buf);
+        if (length < 0 || length > maximumBytes || length > buf.readableBytes()) {
+            throw new IllegalArgumentException("Invalid nested packet length: " + length);
+        }
+        return buf.readBytes(length);
     }
 
     public static FriendlyByteBuf readFriendlyByteBuf(ByteBuf buf) {
@@ -80,7 +95,7 @@ public class NetworkUtils {
 
     public static String readStringSafe(ByteBuf buffer) {
         int length = VarInt.read(buffer);
-        if (length > MAX_ENCODED) {
+        if (length < 0 || length > MAX_ENCODED || length > buffer.readableBytes()) {
             return null;
         }
         String s = buffer.toString(buffer.readerIndex(), length, StandardCharsets.UTF_8);

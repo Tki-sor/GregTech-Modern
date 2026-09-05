@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.client.ClientProxy;
 import com.gregtechceu.gtceu.common.CommonProxy;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.client.Minecraft;
@@ -44,6 +45,7 @@ public class GTCEu {
     public GTCEu(IEventBus modBus, FMLModContainer container) {
         GTCEuAPI.instance = this;
         gtModBus = modBus;
+        modBus.addListener(GTNetwork::registerPayloads);
         GTCEu.init();
         CommonProxy.init(modBus);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientProxy.init(modBus));
