@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 

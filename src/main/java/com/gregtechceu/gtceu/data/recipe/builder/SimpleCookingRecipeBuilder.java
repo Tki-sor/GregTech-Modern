@@ -2,9 +2,10 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -108,7 +109,7 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
             throw new IllegalArgumentException(id + ": output item is empty");
         }
 
-        json.add("ingredient", input.toJson());
+        json.add("ingredient", IngredientUtils.toJson(input));
 
         JsonObject result = new JsonObject();
         result.addProperty("item", BuiltInRegistries.ITEM.getKey(output.getItem()).toString());

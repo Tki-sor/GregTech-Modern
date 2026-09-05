@@ -2,9 +2,10 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -91,7 +92,7 @@ public class ShapelessRecipeBuilder {
 
         JsonArray jsonarray = new JsonArray();
         for (Ingredient ingredient : ingredients) {
-            jsonarray.add(ingredient.toJson());
+            jsonarray.add(IngredientUtils.toJson(ingredient));
         }
         json.add("ingredients", jsonarray);
 

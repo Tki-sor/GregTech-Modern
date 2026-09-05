@@ -3,9 +3,10 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.StrictShapedRecipe;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -141,7 +142,7 @@ public class ShapedRecipeBuilder {
 
         if (!ingredientMap.isEmpty()) {
             JsonObject key = new JsonObject();
-            ingredientMap.forEach((k, v) -> key.add(k.toString(), v.toJson()));
+            ingredientMap.forEach((k, v) -> key.add(k.toString(), IngredientUtils.toJson(v)));
             json.add("key", key);
         }
 

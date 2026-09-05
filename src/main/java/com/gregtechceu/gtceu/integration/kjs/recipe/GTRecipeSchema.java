@@ -31,6 +31,7 @@ import com.gregtechceu.gtceu.integration.kjs.recipe.components.CapabilityMap;
 import com.gregtechceu.gtceu.integration.kjs.recipe.components.ExtendedOutputItem;
 import com.gregtechceu.gtceu.integration.kjs.recipe.components.GTRecipeComponents;
 import com.gregtechceu.gtceu.utils.ResearchManager;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -1241,22 +1242,21 @@ public interface GTRecipeSchema {
         }
 
         public InputItem readInputItem(Object from) {
-            if (from instanceof SizedIngredient ingr) {
+            if (from instanceof Ingredient ingredient && SizedIngredient.get(ingredient) instanceof SizedIngredient ingr) {
                 return InputItem.of(ingr.getInner(), ingr.getAmount());
             } else if (from instanceof JsonObject jsonObject) {
-                if (!jsonObject.has("type") ||
-                        !jsonObject.get("type").getAsString().equals(SizedIngredient.TYPE.toString())) {
+                Ingredient ingredient = IngredientUtils.fromJson(jsonObject);
+                if (SizedIngredient.get(ingredient) == null) {
                     return InputItem.of(from);
                 }
-                var sizedIngredient = SizedIngredient.fromJson(jsonObject);
+                var sizedIngredient = SizedIngredient.get(ingredient);
                 return InputItem.of(sizedIngredient.getInner(), sizedIngredient.getAmount());
             }
             return InputItem.of(from);
         }
 
         public JsonElement writeInputItem(InputItem value) {
-            if (value.ingredient instanceof SizedIngredient sized) return sized.toJson();
-            else return SizedIngredient.create(value.ingredient, value.count).toJson();
+            return IngredientUtils.toJson(SizedIngredient.create(value.ingredient, value.count));
         }
 
         @Override
@@ -1275,8 +1275,8 @@ public interface GTRecipeSchema {
                 if (jsonObject.has("content")) {
                     jsonObject = jsonObject.getAsJsonObject("content");
                 }
-                var ingredient = Ingredient.fromJson(jsonObject);
-                return OutputItem.of(ingredient.getItems()[0], chance);
+                var ingredient = IngredientUtils.fromJson(jsonObject);
+                return OutputItem.of(IngredientUtils.getItems(ingredient)[0], chance);
             }
             return OutputItem.of(from);
         }
@@ -1284,14 +1284,11 @@ public interface GTRecipeSchema {
         @Override
         public JsonElement writeOutputItem(OutputItem value) {
             if (value.rolls != null) {
-                return IntProviderIngredient.of(value.item, value.rolls).toJson();
+                return IngredientUtils.toJson(IntProviderIngredient.of(value.item, value.rolls));
             } else if (value instanceof ExtendedOutputItem extended) {
-                if (extended.ingredient.getInner() instanceof IntProviderIngredient intProvider) {
-                    return intProvider.toJson();
-                }
-                return extended.ingredient.toJson();
+                return IngredientUtils.toJson(extended.ingredient);
             }
-            return SizedIngredient.create(value.item).toJson();
+            return IngredientUtils.toJson(SizedIngredient.create(value.item));
         }
 
         @Override

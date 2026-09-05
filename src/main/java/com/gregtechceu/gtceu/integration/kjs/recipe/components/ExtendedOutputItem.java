@@ -35,12 +35,14 @@ public class ExtendedOutputItem extends OutputItem implements OutputReplacement 
     }
 
     public static ExtendedOutputItem of(Ingredient ingredient, int count) {
-        if (ingredient instanceof SizedIngredient sized) {
+        SizedIngredient sized = SizedIngredient.get(ingredient);
+        if (sized != null) {
             ingredient = sized.getInner();
             if (count == 1) return of(ingredient, sized.getAmount());
         }
         IntProvider rolls = null;
-        if (ingredient instanceof IntProviderIngredient intProvider) {
+        IntProviderIngredient intProvider = IntProviderIngredient.get(ingredient);
+        if (intProvider != null) {
             rolls = intProvider.getCountProvider();
             ingredient = intProvider.getInner();
         }
@@ -60,7 +62,7 @@ public class ExtendedOutputItem extends OutputItem implements OutputReplacement 
             return extendedOutput;
         } else if (o instanceof InputItem input) {
             return ExtendedOutputItem.of(input.ingredient, input.count);
-        } else if (o instanceof IntProviderIngredient intProvider) {
+        } else if (o instanceof Ingredient ingredient && IntProviderIngredient.get(ingredient) instanceof IntProviderIngredient intProvider) {
             return new ExtendedOutputItem(intProvider.getInner(), 1, intProvider.getCountProvider());
         }
 
@@ -92,7 +94,8 @@ public class ExtendedOutputItem extends OutputItem implements OutputReplacement 
     @Override
     public OutputItem withRolls(IntProvider rolls) {
         Ingredient ingredient = this.ingredient.getInner();
-        if (ingredient instanceof IntProviderIngredient intProvider) {
+        IntProviderIngredient intProvider = IntProviderIngredient.get(ingredient);
+        if (intProvider != null) {
             ingredient = intProvider.getInner();
         }
         return new ExtendedOutputItem(ingredient, 1, rolls);

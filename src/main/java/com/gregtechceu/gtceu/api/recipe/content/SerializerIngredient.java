@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.content;
 
 import com.gregtechceu.gtceu.api.recipe.ingredient.SizedIngredient;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
@@ -14,7 +15,7 @@ import com.mojang.serialization.Codec;
 
 public class SerializerIngredient implements IContentSerializer<Ingredient> {
 
-    public static final Codec<Ingredient> CODEC = ExtraCodecs.JSON.xmap(Ingredient::fromJson, Ingredient::toJson);
+    public static final Codec<Ingredient> CODEC = Ingredient.CODEC;
 
     public static SerializerIngredient INSTANCE = new SerializerIngredient();
 
@@ -22,22 +23,22 @@ public class SerializerIngredient implements IContentSerializer<Ingredient> {
 
     @Override
     public void toNetwork(FriendlyByteBuf buf, Ingredient content) {
-        content.toNetwork(buf);
+        IngredientUtils.STREAM_CODEC.encode((net.minecraft.network.RegistryFriendlyByteBuf) buf, content);
     }
 
     @Override
     public Ingredient fromNetwork(FriendlyByteBuf buf) {
-        return Ingredient.fromNetwork(buf);
+        return IngredientUtils.STREAM_CODEC.decode((net.minecraft.network.RegistryFriendlyByteBuf) buf);
     }
 
     @Override
     public Ingredient fromJson(JsonElement json) {
-        return Ingredient.fromJson(json);
+        return IngredientUtils.fromJson(json);
     }
 
     @Override
     public JsonElement toJson(Ingredient content) {
-        return content.toJson();
+        return IngredientUtils.toJson(content);
     }
 
     @Override

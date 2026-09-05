@@ -29,6 +29,7 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.data.loot.*;
+import com.gregtechceu.gtceu.data.recipe.GTIngredientTypes;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.common.data.materials.AlloyBlastPropertyAddition;
 import com.gregtechceu.gtceu.common.data.materials.GTFoods;
@@ -99,6 +100,7 @@ public class CommonProxy {
         }
 
         GTValueProviderTypes.init(eventBus);
+        GTIngredientTypes.init(eventBus);
         GTPlacementModifiers.init(eventBus);
         GTGlobalLootModifiers.init(eventBus);
         GTLootConditions.init(eventBus);
@@ -114,6 +116,8 @@ public class CommonProxy {
 
     public static void init(IEventBus modBus) {
         GTRegistries.init(modBus);
+        GTDatapackRegistries.init(modBus);
+        GTDatapackRegistries.init(modBus);
         CommonProxy proxy = new CommonProxy(modBus);
         proxy.initContent(modBus);
     }

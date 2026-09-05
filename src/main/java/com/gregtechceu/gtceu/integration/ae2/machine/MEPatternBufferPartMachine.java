@@ -1045,7 +1045,7 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                     continue;
                 }
 
-                var items = ingredient.getItems();
+                var items = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(ingredient);
                 if (items.length == 0 || items[0].isEmpty()) {
                     it.remove();
                     continue;
@@ -1077,8 +1077,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                 }
 
                 if (amount > 0) {
-                    if (ingredient instanceof SizedIngredient si) {
-                        si.setAmount(amount);
+                    if (SizedIngredient.get(ingredient) instanceof SizedIngredient si) {
+                        it.set(SizedIngredient.create(si.getInner(), amount));
                     } else {
                         items[0].setCount(amount);
                     }
