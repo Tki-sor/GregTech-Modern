@@ -26,9 +26,14 @@ public record OpenGuiPacket<T extends GuiData>(int windowId, int networkId, UIFa
     public static <T extends GuiData> OpenGuiPacket<T> decode(RegistryFriendlyByteBuf buf) {
         int windowId = VarInt.read(buf);
         int networkId = VarInt.read(buf);
+        if (windowId < 0 || windowId > 100_000 || networkId < -1 || networkId > 100_000) {
+            throw new IllegalArgumentException("Invalid MUI GUI identifiers");
+        }
         // noinspection unchecked
         UIFactory<T> factory = (UIFactory<T>) GuiManager.getFactory(Identifier.STREAM_CODEC.decode(buf));
-        RegistryFriendlyByteBuf data = buf.mui$wrapByteBuf(NetworkUtils.readByteBuf(buf));
+        if (factory == null) throw new IllegalArgumentException("Unknown MUI GUI factory");
+        RegistryFriendlyByteBuf data = buf.mui$wrapByteBuf(NetworkUtils.readByteBuf(buf,
+                NetworkUtils.MAX_NESTED_PACKET_BYTES));
 
         return new OpenGuiPacket<>(windowId, networkId, factory, data);
     }

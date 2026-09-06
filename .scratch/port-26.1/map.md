@@ -26,15 +26,15 @@
 
 ## Implementation plan
 
-实施阶段使用同一目录下的计划票；`Blocked by` 是实现前置，不是线性步骤。最先可取的是 08「移植分支与工具链基线」；08 完成后，09「完整 MUI 移植」与 10「核心 NeoForge API」可并行。
+实施阶段使用同一目录下的计划票；`Blocked by` 是实现前置，不是线性步骤。当前进度：08/09/10/11/13 已完成合入，12 进行中；15 的阻塞项（08, 10, 11）已全部满足，14 的阻塞项（09, 10, 11, 13）也已全部满足，两者可在 12 完成后启动（14 需注意与 task 12 的公共 client/transfer API 冲突面）。
 
 - [08 移植分支与工具链基线](issues/08-toolchain-baseline.md)：已完成；目标坐标、Java/Gradle/MDG、仓库、metadata、run config 和同步基线已写入提交 `de11980fd`。
-- [09 完整 MUI 26.1.2 移植](issues/09-mui-port.md)：阻塞于 08；从 ModularUI-Modern 1.21.1 分支完整迁移并让 GTM 消费。
-- [10 核心 NeoForge API 与注册系统](issues/10-core-neoforge-api.md)：阻塞于 08；迁移入口、总线、注册表、能力注册、包名与公共初始化。
-- [11 数据、配方与 datagen](issues/11-data-and-datagen.md)：阻塞于 10；迁移 Data Component、datapack registry、loot、tags、recipe codec 和生成链路。
-- [12 传输与 Capability 语义](issues/12-transfer-capabilities.md)：阻塞于 10；迁移物品/流体/能量/自有 capability 边界及机器、管道、cover 行为。
-- [13 网络与同步协议](issues/13-networking.md)：阻塞于 10；将 SimpleChannel 迁移为 payload/StreamCodec，并恢复 GUI、机器、配方同步。
-- [14 客户端渲染、MUI UI 与 mixin](issues/14-client-rendering.md)：阻塞于 09, 10, 11, 13；迁移两阶段渲染、屏幕、BER、动态高亮、mixin 和 MUI 集成。
+- [09 完整 MUI 26.1.2 移植](issues/09-mui-port.md)：已完成，合并提交 `e2c2807aad`；独立 `:modularui` 模块和真实 schema PIP 渲染路径已接入。
+- [10 核心 NeoForge API 与注册系统](issues/10-core-neoforge-api.md)：已完成；入口、总线、注册表、capability key 与包名迁移已写入提交 `aa94af3c9`。
+- [11 数据、配方与 datagen](issues/11-data-and-datagen.md)：已完成，实现提交 `6a3b3a21a` 经合并提交 `0ad482f75` 合入；`runData` 完整执行随 task 16 闭环。
+- [12 传输与 Capability 语义](issues/12-transfer-capabilities.md)：进行中；在 worktree `D:\mcmodDemo\gtm-12-transfer` 分支 `impl/12-transfer-capabilities` 上继续已有未提交迁移。
+- [13 网络与同步协议](issues/13-networking.md)：已完成，实现提交 `94c566957` 经合并提交 `77ade7b04` 合入；GameTest 同步验收随 task 14/16 闭环。
+- [14 客户端渲染、MUI UI 与 mixin](issues/14-client-rendering.md)：阻塞于 09, 10, 11, 13（均已完成）；迁移两阶段渲染、屏幕、BER、动态高亮、mixin 和 MUI 集成；注意与进行中的 task 12 在公共 client/transfer API 上的合并冲突。
 - [15 保留集成与砍件清理](issues/15-integrations-and-cuts.md)：阻塞于 08, 10, 11；接入已核验依赖，删除砍件及其牵连模块，保留无可选依赖时的核心行为。
 - [16 测试、数据生成与运行时验收](issues/16-validation.md)：阻塞于 09, 11, 12, 13, 14, 15；执行全量 Gradle 验收并补行为测试。
 - [17 上游同步与发布准备](issues/17-sync-and-release.md)：阻塞于 08, 16；固化 rebase 流程、CI、版本元数据和 26.1.2 发布产物检查。

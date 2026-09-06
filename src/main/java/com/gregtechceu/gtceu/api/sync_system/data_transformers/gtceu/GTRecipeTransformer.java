@@ -36,7 +36,7 @@ public class GTRecipeTransformer implements ValueTransformer<GTRecipe> {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", value.id.toString());
         tag.put("recipe",
-                GTRecipeSerializer.CODEC.encodeStart(context.nbtOps(), value).result().orElse(new CompoundTag()));
+                GTRecipeSerializer.CODEC.codec().encodeStart(context.nbtOps(), value).result().orElse(new CompoundTag()));
         tag.putInt("ocLevel", value.ocLevel);
         return tag;
     }
@@ -71,11 +71,11 @@ public class GTRecipeTransformer implements ValueTransformer<GTRecipe> {
 
     @Override
     public void writeToPacket(FriendlyByteBuf buf, GTRecipe value, TransformerContext<GTRecipe> context) {
-        GTRecipeSerializer.SERIALIZER.toNetwork(buf, value);
+        GTRecipeSerializer.toNetwork((net.minecraft.network.RegistryFriendlyByteBuf) buf, value);
     }
 
     @Override
     public @Nullable GTRecipe readFromPacket(FriendlyByteBuf buf, TransformerContext<GTRecipe> context) {
-        return GTRecipeSerializer.fromNetworkWithoutDatapackSync(buf);
+        return GTRecipeSerializer.fromNetworkWithoutDatapackSync((net.minecraft.network.RegistryFriendlyByteBuf) buf);
     }
 }

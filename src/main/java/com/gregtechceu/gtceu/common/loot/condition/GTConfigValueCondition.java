@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -44,8 +43,8 @@ public class GTConfigValueCondition implements LootItemCondition {
     }
 
     @Override
-    public LootItemConditionType getType() {
-        return GTLootConditions.CONFIG_VALUE.get();
+    public MapCodec<? extends LootItemCondition> codec() {
+        return CODEC;
     }
 
     public static LootItemCondition.Builder configEnabled(String configField) {

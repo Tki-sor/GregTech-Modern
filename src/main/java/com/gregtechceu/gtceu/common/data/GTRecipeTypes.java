@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.*;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.gui.GTRecipeTypeUILayout;
 import com.gregtechceu.gtceu.api.recipe.gui.RecipeUIModifier;
@@ -577,7 +578,8 @@ public class GTRecipeTypes {
                     ItemStack[] outputs = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
                             ItemRecipeCapability.CAP
                                     .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).get(0).content())
-                                    .getItems() :
+                                     .isEmpty() ? new ItemStack[0] : IngredientUtils.getItems(ItemRecipeCapability.CAP
+                                             .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).get(0).content())) :
                             null;
                     ItemStack outputItem = outputs == null || outputs.length == 0 ? ItemStack.EMPTY : outputs[0];
                     if (input.isEmpty()) return;
@@ -703,7 +705,7 @@ public class GTRecipeTypes {
     public static GTRecipeType register(Identifier id, String group, RecipeType<?>... proxyRecipes) {
         var recipeType = new GTRecipeType(id, group, proxyRecipes);
         GTRegistries.register(BuiltInRegistries.RECIPE_TYPE, recipeType.registryName, recipeType);
-        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, new GTRecipeSerializer());
+        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, GTRecipeSerializer.SERIALIZER);
         GTRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType);
         return recipeType;
     }
@@ -715,7 +717,7 @@ public class GTRecipeTypes {
     public static GTRecipeType register(String name, String group, RecipeType<?>... proxyRecipes) {
         var recipeType = new GTRecipeType(GTCEu.id(name), group, proxyRecipes);
         GTRegistries.register(BuiltInRegistries.RECIPE_TYPE, recipeType.registryName, recipeType);
-        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, new GTRecipeSerializer());
+        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, GTRecipeSerializer.SERIALIZER);
         GTRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType);
         return recipeType;
     }

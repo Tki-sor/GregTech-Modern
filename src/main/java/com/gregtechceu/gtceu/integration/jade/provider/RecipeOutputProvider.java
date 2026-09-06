@@ -62,16 +62,18 @@ public class RecipeOutputProvider extends MachineTraitProvider<RecipeLogic, Comp
                 ListTag itemTags = new ListTag();
                 for (var item : itemContents) {
                     CompoundTag itemTag;
-                    if (item.content() instanceof IntProviderIngredient provider) {
-                        IntProviderIngredient chanced = provider;
+                    if (item.content() instanceof Ingredient ingredient
+                            && IntProviderIngredient.get(ingredient) instanceof IntProviderIngredient provider) {
+                        Ingredient chanced = ingredient;
                         if (item.chance() < item.maxChance()) {
                             double countD = ((double) runs * item.chance()) / item.maxChance();
-                            chanced = (IntProviderIngredient) ItemRecipeCapability.CAP.copyWithModifier(provider,
+                            chanced = ItemRecipeCapability.CAP.copyWithModifier(provider.toVanilla(),
                                     ContentModifier.multiplier(countD));
                         }
-                        itemTag = (CompoundTag) JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, chanced.toJson());
+                        itemTag = (CompoundTag) JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE,
+                                com.gregtechceu.gtceu.utils.IngredientUtils.toJson(chanced));
                     } else {
-                        var stacks = ItemRecipeCapability.CAP.of(item.content()).getItems();
+                        var stacks = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(ItemRecipeCapability.CAP.of(item.content()));
                         if (stacks.length == 0 || stacks[0].isEmpty()) continue;
                         var stack = stacks[0];
                         itemTag = new CompoundTag();
@@ -183,13 +185,13 @@ public class RecipeOutputProvider extends MachineTraitProvider<RecipeLogic, Comp
             if (itemOutput != null && !itemOutput.isEmpty()) {
                 ItemStack item;
                 MutableComponent text = CommonComponents.space();
-                if (itemOutput instanceof IntProviderIngredient provider) {
-                    item = provider.getInner().getItems()[0];
+                if (IntProviderIngredient.get(itemOutput) instanceof IntProviderIngredient provider) {
+                    item = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(provider.getInner())[0];
                     text = text.append(Component.translatable("gtceu.gui.content.range",
                             String.valueOf(provider.getCountProvider().getMinValue()),
                             String.valueOf(provider.getCountProvider().getMaxValue())));
                 } else {
-                    item = itemOutput.getItems()[0];
+                    item = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(itemOutput)[0];
                     text.append(String.valueOf(item.getCount()));
                     item.setCount(1);
                 }

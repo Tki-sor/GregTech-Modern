@@ -3,7 +3,10 @@ package com.gregtechceu.gtceu.data;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.registry.registrate.SoundEntryBuilder;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
-import com.gregtechceu.gtceu.common.data.worldgen.*;
+import com.gregtechceu.gtceu.common.data.worldgen.GTBiomeModifiers;
+import com.gregtechceu.gtceu.common.data.worldgen.GTConfiguredFeatures;
+import com.gregtechceu.gtceu.common.data.worldgen.GTDensityFunctions;
+import com.gregtechceu.gtceu.common.data.worldgen.GTPlacedFeatures;
 import com.gregtechceu.gtceu.data.loot.GTLootModifications;
 import com.gregtechceu.gtceu.data.loot.GTLootTables;
 import com.gregtechceu.gtceu.data.tags.BiomeTagsLoader;
@@ -11,44 +14,37 @@ import com.gregtechceu.gtceu.data.tags.DamageTagsLoader;
 
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.registries.ForgeRegistries;
 
 import java.util.Set;
 
-@EventBusSubscriber()
-public class DataGenerators {
+@EventBusSubscriber(modid = GTCEu.MOD_ID)
+public final class DataGenerators {
+
+    private DataGenerators() {}
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
-        DataGenerator generator = event.getGenerator();
-        PackOutput packOutput = generator.getPackOutput();
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
-        var registries = event.getLookupProvider();
-        if (event.includeClient()) {
-            generator.addProvider(true, new SoundEntryBuilder.SoundEntryProvider(packOutput, GTCEu.MOD_ID));
-        }
-        if (event.includeServer()) {
-            var set = Set.of(GTCEu.MOD_ID);
-            generator.addProvider(true, new BiomeTagsLoader(packOutput, registries, existingFileHelper));
-            DatapackBuiltinEntriesProvider provider = generator.addProvider(true, new DatapackBuiltinEntriesProvider(
-                    packOutput, registries, new RegistrySetBuilder()
-                            .add(Registries.DAMAGE_TYPE, GTDamageTypes::bootstrap)
-                            .add(Registries.CONFIGURED_FEATURE, GTConfiguredFeatures::bootstrap)
-                            .add(Registries.PLACED_FEATURE, GTPlacedFeatures::bootstrap)
-                            .add(Registries.DENSITY_FUNCTION, GTDensityFunctions::bootstrap)
-                            .add(ForgeRegistries.Keys.BIOME_MODIFIERS, GTBiomeModifiers::bootstrap),
-                    set));
-            generator.addProvider(true,
-                    new DamageTagsLoader(packOutput, provider.getRegistryProvider(), existingFileHelper));
-            generator.addProvider(true, new GTLootTables(packOutput));
-            generator.addProvider(true, new GTLootModifications(packOutput));
-        }
+    public static void gatherClient(GatherDataEvent.Client event) {
+        event.createProvider(output -> new SoundEntryBuilder.SoundEntryProvider(output, GTCEu.MOD_ID));
+    }
+
+    @SubscribeEvent
+    public static void gatherServer(GatherDataEvent.Server event) {
+        var lookup = event.getLookupProvider();
+        event.createProvider(output -> new BiomeTagsLoader(output, lookup));
+        event.createDatapackRegistryObjects(new RegistrySetBuilder()
+                .add(Registries.DAMAGE_TYPE, GTDamageTypes::bootstrap)
+                .add(Registries.CONFIGURED_FEATURE, GTConfiguredFeatures::bootstrap)
+                .add(Registries.PLACED_FEATURE, GTPlacedFeatures::bootstrap)
+                .add(Registries.DENSITY_FUNCTION, GTDensityFunctions::bootstrap)
+                .add(ForgeRegistries.Keys.BIOME_MODIFIERS, GTBiomeModifiers::bootstrap), Set.of(GTCEu.MOD_ID));
+        var moddedLookup = event.getLookupProvider();
+        event.createProvider(output -> new com.gregtechceu.gtceu.common.data.GTDataMaps.Provider(output, moddedLookup));
+        event.createProvider(output -> new DamageTagsLoader(output, moddedLookup));
+        event.createProvider(output -> new GTLootTables(output, moddedLookup));
+        event.createProvider(output -> new GTLootModifications(output, moddedLookup));
     }
 }

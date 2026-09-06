@@ -28,12 +28,13 @@ import com.gregtechceu.gtceu.common.recipe.condition.*;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
@@ -1443,7 +1444,7 @@ public class GTRecipeBuilder {
 
     public void toJson(JsonObject json) {
         var ops = RegistryOps.create(JsonOps.INSTANCE, GTRegistries.builtinRegistry());
-        JsonObject serialized = GTRecipeSerializer.CODEC.encodeStart(ops, buildRawRecipe())
+        JsonObject serialized = GTRecipeSerializer.CODEC.codec().encodeStart(ops, buildRawRecipe())
                 .getOrThrow(false, GTCEu.LOGGER::error).getAsJsonObject();
         for (String key : serialized.keySet()) {
             json.add(key, serialized.get(key));
@@ -1566,15 +1567,16 @@ public class GTRecipeBuilder {
             Item out = null;
             int outputCount = 0;
 
-            if (currOutput instanceof IntProviderIngredient intProvider) {
-                ItemStack[] items = intProvider.getInner().getItems();
+            IntProviderIngredient intProvider = IntProviderIngredient.get(currOutput);
+            if (intProvider != null) {
+                ItemStack[] items = IngredientUtils.getItems(intProvider.getInner());
                 if (items.length > 0) {
                     out = items[0].getItem();
                     // use the max amount of items for decomp info so dupes can't happen
                     outputCount = intProvider.getMaxRoll();
                 }
             } else if (!currOutput.isEmpty()) {
-                ItemStack[] items = currOutput.getItems();
+                ItemStack[] items = IngredientUtils.getItems(currOutput);
                 if (items.length > 0) {
                     out = items[0].getItem();
                     outputCount = items[0].getCount();
@@ -1617,15 +1619,16 @@ public class GTRecipeBuilder {
             Item out = null;
             int outputCount = 0;
 
-            if (currOutput instanceof IntProviderIngredient intProvider) {
-                ItemStack[] items = intProvider.getInner().getItems();
+            IntProviderIngredient intProvider = IntProviderIngredient.get(currOutput);
+            if (intProvider != null) {
+                ItemStack[] items = IngredientUtils.getItems(intProvider.getInner());
                 if (items.length > 0) {
                     out = items[0].getItem();
                     // use the max amount of items for decomp info so dupes can't happen
                     outputCount = intProvider.getMaxRoll();
                 }
             } else if (!currOutput.isEmpty()) {
-                ItemStack[] items = currOutput.getItems();
+                ItemStack[] items = IngredientUtils.getItems(currOutput);
                 if (items.length > 0) {
                     out = items[0].getItem();
                     outputCount = items[0].getCount();

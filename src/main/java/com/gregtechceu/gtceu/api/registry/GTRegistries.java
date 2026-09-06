@@ -37,6 +37,14 @@ import org.jetbrains.annotations.ApiStatus;
 
 public final class GTRegistries {
 
+    public static final class Keys {
+        private Keys() {}
+
+        public static final ResourceKey<Registry<GTOreDefinition>> ORE_VEIN = ResourceKey.createRegistryKey(GTCEu.id("ore_vein"));
+        public static final ResourceKey<Registry<BedrockOreDefinition>> BEDROCK_ORE = ResourceKey.createRegistryKey(GTCEu.id("bedrock_ore"));
+        public static final ResourceKey<Registry<BedrockFluidDefinition>> BEDROCK_FLUID = ResourceKey.createRegistryKey(GTCEu.id("bedrock_fluid"));
+    }
+
     // spotless:off
 
     // Material related registries
