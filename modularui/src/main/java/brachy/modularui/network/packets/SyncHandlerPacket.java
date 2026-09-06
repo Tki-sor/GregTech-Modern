@@ -36,10 +36,13 @@ public record SyncHandlerPacket(int networkId, String panel, String key, boolean
 
     public static SyncHandlerPacket decode(RegistryFriendlyByteBuf buf) {
         int networkId = buf.readVarInt();
+        if (networkId < -1 || networkId > 100_000) throw new IllegalArgumentException("Invalid MUI network id");
         String panel = NetworkUtils.readStringSafe(buf);
         String key = NetworkUtils.readStringSafe(buf);
+        if (panel == null || key == null) throw new IllegalArgumentException("Invalid MUI sync key");
         boolean action = buf.readBoolean();
-        RegistryFriendlyByteBuf packet = buf.mui$wrapByteBuf(NetworkUtils.readByteBuf(buf));
+        RegistryFriendlyByteBuf packet = buf.mui$wrapByteBuf(NetworkUtils.readByteBuf(buf,
+                NetworkUtils.MAX_NESTED_PACKET_BYTES));
 
         return new SyncHandlerPacket(networkId, panel, key, action, packet);
     }

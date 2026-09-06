@@ -1,36 +1,45 @@
 package com.gregtechceu.gtceu.common.network.packets;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.misc.ImageCache;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.neoforged.neoforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.io.IOException;
 
-public class CPacketImageRequest implements GTNetwork.INetPacket {
+/** Image request. C2S, main-thread entry, required payload. */
+public record CPacketImageRequest(String url) implements CustomPacketPayload {
 
-    private final String url;
+    private static final int MAX_URL_BYTES = 2048;
+    public static final Type<CPacketImageRequest> TYPE = new Type<>(Identifier.fromNamespaceAndPath(GTCEu.MOD_ID, "image_request"));
+    public static final StreamCodec<FriendlyByteBuf, CPacketImageRequest> CODEC = StreamCodec.ofMember(
+            CPacketImageRequest::encode, CPacketImageRequest::decode);
 
-    public CPacketImageRequest(String url) {
-        this.url = url;
+    private static CPacketImageRequest decode(FriendlyByteBuf buffer) {
+        return new CPacketImageRequest(GTNetwork.readString(buffer, MAX_URL_BYTES, "image URL"));
     }
 
-    public CPacketImageRequest(FriendlyByteBuf buf) {
-        this.url = buf.readUtf();
+    private void encode(FriendlyByteBuf buffer) {
+        buffer.writeUtf(url, MAX_URL_BYTES);
     }
 
-    @Override
-    public void encode(FriendlyByteBuf buffer) {
-        buffer.writeUtf(url);
-    }
-
-    @Override
-    public void execute(NetworkEvent.Context context) {
-        ImageCache.queryServerImage(url, image -> {
+    public static void handle(CPacketImageRequest packet, IPayloadContext context) {
+        GTNetwork.execute(context, TYPE.id().toString(), () -> ImageCache.queryServerImage(packet.url(), image -> {
             try {
-                SPacketImageResponse.sendImage(url, image, context);
-            } catch (IOException ignored) {}
-        });
+                SPacketImageResponse.sendImage(packet.url(), image, context);
+            } catch (IOException exception) {
+                GTCEu.LOGGER.debug("Failed to send requested image", exception);
+            }
+        }));
+    }
+
+    @Override
+    public Type<CPacketImageRequest> type() {
+        return TYPE;
     }
 }

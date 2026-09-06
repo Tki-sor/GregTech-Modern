@@ -28,6 +28,7 @@ import com.gregtechceu.gtceu.client.renderer.machine.impl.*;
 import com.gregtechceu.gtceu.client.renderer.machine.impl.BoilerMultiPartRender;
 import com.gregtechceu.gtceu.client.util.ModelEventHelper;
 import com.gregtechceu.gtceu.common.CommonEventListener;
+import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.data.models.GTModels;
 import com.gregtechceu.gtceu.common.entity.GTBoat;
@@ -82,6 +83,7 @@ public class ClientProxy {
 
     public static void init(IEventBus modBus) {
         modBus.register(ClientProxy.class);
+        modBus.addListener(GTNetwork::registerClientPayloads);
         if (!GTCEu.isDataGen()) {
 
             ClientCacheManager.registerClientCache(GTClientCache.instance, "gtceu");
