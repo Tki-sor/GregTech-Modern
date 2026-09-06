@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.item;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.capability.CombinedCapabilityProvider;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -60,12 +59,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.capabilities.Capability;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.ForgeHooks;
 import net.neoforged.neoforge.common.ToolAction;
-import net.neoforged.neoforge.common.extensions.IForgeItem;
-import net.neoforged.neoforge.common.util.LazyOptional;
+import net.neoforged.neoforge.common.extensions.IItemExtension;
 
 import brachy.modularui.api.IUIHolder;
 import brachy.modularui.factory.PlayerInventoryGuiData;
@@ -88,7 +85,7 @@ import static com.gregtechceu.gtceu.data.recipe.generated.ToolRecipeHandler.powe
 import static net.minecraft.world.item.Item.BASE_ATTACK_DAMAGE_UUID;
 import static net.minecraft.world.item.Item.BASE_ATTACK_SPEED_UUID;
 
-public interface IGTTool extends IUIHolder<PlayerInventoryGuiData<?>>, ItemLike, IForgeItem {
+public interface IGTTool extends IUIHolder<PlayerInventoryGuiData<?>>, ItemLike, IItemExtension {
 
     GTToolType getToolType();
 
@@ -924,36 +921,15 @@ public interface IGTTool extends IUIHolder<PlayerInventoryGuiData<?>>, ItemLike,
         return getToolClasses(stack).stream().flatMap(type -> type.toolClassNames.stream()).collect(Collectors.toSet());
     }
 
-    @Nullable
-    default ICapabilityProvider definition$initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        List<ICapabilityProvider> providers = new ArrayList<>();
-        if (isElectric()) {
-            ElectricStats item = ElectricStats.createElectricItem(0L, getElectricTier());
-            providers.add(new ICapabilityProvider() {
-
-                @Override
-                public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> capability,
-                                                                  @Nullable Direction arg) {
-                    return item.getCapability(stack, capability);
-                }
-            });
-        }
+    default void attachCapabilities(RegisterCapabilitiesEvent event) {
         for (IToolBehavior behavior : getToolStats().getBehaviors()) {
             if (behavior instanceof IComponentCapability componentCapability) {
-                providers.add(new ICapabilityProvider() {
-
-                    @Override
-                    public @NotNull <
-                            T> LazyOptional<T> getCapability(@NotNull Capability<T> capability,
-                                                             @Nullable Direction arg) {
-                        return componentCapability.getCapability(stack, capability);
-                    }
-                });
+                componentCapability.attachCapabilities(event, asItem());
             }
         }
-        if (providers.isEmpty()) return null;
-        if (providers.size() == 1) return providers.get(0);
-        return new CombinedCapabilityProvider(providers);
+        if (isElectric()) {
+            ElectricStats.createElectricItem(0L, getElectricTier()).attachCapabilities(event, asItem());
+        }
     }
 
     default boolean definition$isCorrectToolForDrops(ItemStack stack, BlockState state) {

@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
 import com.gregtechceu.gtceu.api.item.IMergeableNBTSerializable;
 import com.gregtechceu.gtceu.api.item.ISpoilableItemStackExtension;
 import com.gregtechceu.gtceu.api.item.component.*;
@@ -10,21 +11,15 @@ import com.gregtechceu.gtceu.common.item.behavior.SpoilableBehavior;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.capabilities.Capability;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
-import net.neoforged.neoforge.common.util.INBTSerializable;
-import net.neoforged.neoforge.common.util.LazyOptional;
-import net.neoforged.neoforge.event.AttachCapabilitiesEvent;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import lombok.Getter;
@@ -36,7 +31,7 @@ import java.util.List;
 
 /**
  * This class is a basic implementation of the {@link ISpoilableItem} capability,
- * to be attached to an item in an {@link AttachCapabilitiesEvent<ItemStack>} listener.
+ * to be created per queried stack by {@link SpoilableBehavior}'s item capability provider.
  * It leaves some methods unimplemented, such as {@link ISpoilableItem#getSpoilTicks()} and
  * {@link ISpoilableItem#spoilResult(SpoilContext, boolean)}.
  *
@@ -46,7 +41,7 @@ import java.util.List;
  * @see SpoilableBehavior#attachTo(ItemLike)
  */
 public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformation, IDurabilityBar,
-                                         IMergeableNBTSerializable, ICapabilityProvider {
+                                         IMergeableNBTSerializable {
 
     public static final String SPOIL_CONTEXT_KEY = "spoilContext";
     public static final String FROZEN_TICKS_KEY = "frozenRemainingTicks";
@@ -200,7 +195,7 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
             SpoilContext ctx = getSpoilContext();
             if (ctx.level() != null && ctx.pos() != null)
                 tooltipComponents.add(Component.translatable("gtceu.tooltip.location",
-                        ctx.level().dimensionTypeId().location().toString(),
+                        ctx.level().dimension().identifier().toString(),
                         ctx.pos().getX(), ctx.pos().getY(), ctx.pos().getZ()));
             if (ctx.entity() != null) tooltipComponents.add(Component.translatable("gtceu.tooltip.location_entity",
                     ctx.entity().getType().getDescription()));
@@ -214,12 +209,12 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     }
 
     protected Component getSpoilResultTooltip() {
-        return spoilResult(new SpoilContext(), false).getDisplayName();
+        return spoilResult(new SpoilContext(), false).getHoverName();
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
-        return FastColor.ARGB32.color(255, 255, 255, 255);
+        return ARGB.color(255, 255, 255, 255);
     }
 
     @Override
@@ -252,10 +247,10 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
     public void deserializeNBT(Tag nbt) {
         if (nbt instanceof CompoundTag tag && !tag.isEmpty()) {
             initialized = true;
-            spoilContext = SpoilContext.deserializeNBT(tag.getCompound(SPOIL_CONTEXT_KEY));
-            creationTick = tag.getLong(CREATION_TICK_KEY);
-            if (tag.contains(FROZEN_TICKS_KEY, Tag.TAG_LONG)) {
-                frozenTicks = tag.getLong(FROZEN_TICKS_KEY);
+            spoilContext = SpoilContext.deserializeNBT(tag.getCompound(SPOIL_CONTEXT_KEY).orElseGet(CompoundTag::new));
+            creationTick = tag.getLong(CREATION_TICK_KEY).orElse(0L);
+            if (tag.contains(FROZEN_TICKS_KEY)) {
+                frozenTicks = tag.getLong(FROZEN_TICKS_KEY).orElse(0L);
                 frozen = true;
             } else frozen = false;
         } else initialized = false;
@@ -288,11 +283,6 @@ public abstract class SpoilableItemStack implements ISpoilableItem, IAddInformat
                 spoilable.setCreationTick(average);
             }
         }
-    }
-
-    @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return GTCapability.CAPABILITY_SPOILABLE_ITEM.orEmpty(cap, LazyOptional.of(() -> this));
     }
 
     /**

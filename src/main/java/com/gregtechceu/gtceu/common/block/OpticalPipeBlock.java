@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProperties, LevelOpticalPipeNet> {
+public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProperties, LevelOpticalPipeNet> implements IGTCapabilityBlock {
 
     private final OpticalPipeProperties properties;
 
@@ -65,6 +66,18 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
     @Override
     public LevelOpticalPipeNet getWorldPipeNet(ServerLevel level) {
         return LevelOpticalPipeNet.getOrCreate(level);
+    }
+
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(GTCapability.CAPABILITY_DATA_ACCESS,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof OpticalPipeBlockEntity pipe ?
+                        pipe.getDataHandler(side) : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_COMPUTATION_PROVIDER,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof OpticalPipeBlockEntity pipe ?
+                        pipe.getComputationHandler(side) : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof PipeBlockEntity<?, ?> pipe ?
+                        pipe.getCoverContainer() : null, this);
     }
 
     @Override

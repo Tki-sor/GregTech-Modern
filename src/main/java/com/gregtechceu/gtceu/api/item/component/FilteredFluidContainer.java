@@ -2,14 +2,15 @@ package com.gregtechceu.gtceu.api.item.component;
 
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.misc.forge.FilteredFluidHandlerItemStack;
+import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.capabilities.Capability;
-import net.neoforged.neoforge.capabilities.ForgeCapabilities;
-import net.neoforged.neoforge.common.util.LazyOptional;
+import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
@@ -32,16 +33,17 @@ public class FilteredFluidContainer implements IItemComponent, IComponentCapabil
     }
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(ItemStack itemStack, @NotNull Capability<T> cap) {
-        return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(cap,
-                LazyOptional.of(() -> new FilteredFluidHandlerItemStack(itemStack, capacity, filter)));
+    public void attachCapabilities(RegisterCapabilitiesEvent event, Item item) {
+        event.registerItem(Capabilities.Fluid.ITEM,
+                (stack, context) -> GTMTransferAdapters.fluid(new FilteredFluidHandlerItemStack(stack, capacity, filter)),
+                item);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                 TooltipFlag isAdvanced) {
         FluidUtil.getFluidContained(stack).ifPresent(fluid -> tooltipComponents
-                .add(Component.translatable("gtceu.universal.tooltip.fluid_stored", fluid.getDisplayName(),
+                .add(Component.translatable("gtceu.universal.tooltip.fluid_stored", fluid.getHoverName(),
                         fluid.getAmount())));
     }
 }

@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
+import com.gregtechceu.gtceu.api.block.IGTCapabilityBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent;
@@ -17,6 +18,8 @@ import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerators;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerators;
 import com.gregtechceu.gtceu.api.events.ModifyMachineEvent;
 import com.gregtechceu.gtceu.api.events.RegisterSpoilablesEvent;
+import com.gregtechceu.gtceu.api.item.IComponentItem;
+import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.mui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.mui.factory.MachineUIFactory;
 import com.gregtechceu.gtceu.api.multiblock.error.GTPatternErrors;
@@ -54,12 +57,15 @@ import com.gregtechceu.gtceu.integration.kjs.events.MaterialModificationEventJS;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.utils.input.SyncedKeyMappings;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoader;
@@ -306,6 +312,20 @@ public class CommonProxy {
     @SubscribeEvent
     public void registerCapabilities(RegisterCapabilitiesEvent event) {
         GTCapability.register(event);
+        SpoilableBehavior.attachCapabilities(event);
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (block instanceof IGTCapabilityBlock capabilityBlock) {
+                capabilityBlock.attachCapabilities(event);
+            }
+        }
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item instanceof IComponentItem componentItem) {
+                componentItem.attachCapabilities(event);
+            }
+            if (item instanceof IGTTool tool) {
+                tool.attachCapabilities(event);
+            }
+        }
     }
 
     @SubscribeEvent

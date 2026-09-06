@@ -33,7 +33,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipeProperties, LevelFluidPipeNet> {
+public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipeProperties, LevelFluidPipeNet> implements IGTCapabilityBlock {
 
     public FluidPipeBlock(Properties properties, FluidPipeType fluidPipeType, Material material) {
         super(properties, fluidPipeType, material);
@@ -65,6 +66,16 @@ public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipePr
         return LevelFluidPipeNet.getOrCreate(level);
     }
 
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, blockEntity, side) -> {
+            if (!(blockEntity instanceof FluidPipeBlockEntity pipe) || side == null || !pipe.isConnected(side)) return null;
+            return com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters.fluid(pipe.getTankList(side));
+        }, this);
+        event.registerBlock(com.gregtechceu.gtceu.api.capability.GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof FluidPipeBlockEntity pipe ?
+                        pipe.getCoverContainer() : null, this);
+    }
+
     @Override
     public BlockEntityType<? extends PipeBlockEntity<FluidPipeType, FluidPipeProperties>> getBlockEntityType() {
         return GTBlockEntities.FLUID_PIPE.get();
@@ -79,7 +90,8 @@ public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipePr
     @Override
     public boolean canPipeConnectToBlock(IPipeNode<FluidPipeType, FluidPipeProperties> selfTile, Direction side,
                                          @Nullable BlockEntity tile) {
-        return tile != null && tile.getCapability(ForgeCapabilities.FLUID_HANDLER, side.getOpposite()).isPresent();
+        return tile != null && tile.getLevel() != null &&
+                tile.getLevel().getCapability(Capabilities.Fluid.BLOCK, tile.getBlockPos(), side.getOpposite()) != null;
     }
 
     @Override

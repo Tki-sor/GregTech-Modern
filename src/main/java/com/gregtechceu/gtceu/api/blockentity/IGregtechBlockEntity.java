@@ -8,11 +8,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.common.extensions.IForgeBlockEntity;
+import net.neoforged.neoforge.common.extensions.IBlockEntityExtension;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface IGregtechBlockEntity extends ISyncManaged, ITickSubscription, IForgeBlockEntity {
+public interface IGregtechBlockEntity extends ISyncManaged, ITickSubscription, IBlockEntityExtension {
 
     default BlockEntity self() {
         return (BlockEntity) this;
@@ -43,7 +43,7 @@ public interface IGregtechBlockEntity extends ISyncManaged, ITickSubscription, I
 
     default boolean isRemote() {
         Level level = self().getLevel();
-        return level == null ? GTCEu.isClientThread() : level.isClientSide;
+        return level == null ? GTCEu.isClientThread() : level.isClientSide();
     }
 
     default void scheduleRenderUpdate() {
@@ -51,7 +51,7 @@ public interface IGregtechBlockEntity extends ISyncManaged, ITickSubscription, I
         var level = self().getLevel();
         if (level != null) {
             var state = level.getBlockState(pos);
-            if (level.isClientSide) {
+            if (level.isClientSide()) {
                 level.sendBlockUpdated(pos, state, state, Block.UPDATE_IMMEDIATE);
                 requestModelDataUpdate();
             } else {

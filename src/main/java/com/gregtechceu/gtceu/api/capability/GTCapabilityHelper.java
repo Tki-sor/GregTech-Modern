@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.capability;
 
 import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
+import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
 
 import net.minecraft.core.BlockPos;
@@ -12,6 +13,11 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,20 +32,39 @@ public class GTCapabilityHelper {
 
     @Nullable
     public static IEnergyStorage getForgeEnergyItem(ItemStack itemStack) {
-        var handler = itemStack.getCapability(Capabilities.EnergyStorage.ITEM);
-        return handler == null ? null : IEnergyStorage.of(handler);
+        EnergyHandler handler = getEnergyHandler(itemStack);
+        return handler == null ? null : GTMTransferAdapters.energyStorage(handler);
+    }
+
+    @Nullable
+    public static EnergyHandler getEnergyHandler(ItemStack itemStack) {
+        // ItemAccess.forStack throws for empty stacks; an empty stack never exposes energy.
+        return itemStack.isEmpty() ? null
+                : itemStack.getCapability(Capabilities.Energy.ITEM, ItemAccess.forStack(itemStack));
     }
 
     @Nullable
     public static IItemHandler getItemHandler(Level level, BlockPos pos, @Nullable Direction side) {
-        var handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
-        return handler == null ? null : IItemHandler.of(handler);
+        ResourceHandler<ItemResource> handler = level.getCapability(Capabilities.Item.BLOCK, pos, side);
+        return handler == null ? null : GTMTransferAdapters.itemHandler(handler);
+    }
+
+    @Nullable
+    public static ResourceHandler<ItemResource> getItemResourceHandler(Level level, BlockPos pos,
+                                                                        @Nullable Direction side) {
+        return level.getCapability(Capabilities.Item.BLOCK, pos, side);
     }
 
     @Nullable
     public static IFluidHandler getFluidHandler(Level level, BlockPos pos, @Nullable Direction side) {
-        var handler = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, side);
-        return handler == null ? null : IFluidHandler.of(handler);
+        ResourceHandler<FluidResource> handler = level.getCapability(Capabilities.Fluid.BLOCK, pos, side);
+        return handler == null ? null : GTMTransferAdapters.fluidHandler(handler);
+    }
+
+    @Nullable
+    public static ResourceHandler<FluidResource> getFluidResourceHandler(Level level, BlockPos pos,
+                                                                          @Nullable Direction side) {
+        return level.getCapability(Capabilities.Fluid.BLOCK, pos, side);
     }
 
     @Nullable
@@ -69,8 +94,13 @@ public class GTCapabilityHelper {
 
     @Nullable
     public static IEnergyStorage getForgeEnergy(Level level, BlockPos pos, @Nullable Direction side) {
-        var handler = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, side);
-        return handler == null ? null : IEnergyStorage.of(handler);
+        EnergyHandler handler = level.getCapability(Capabilities.Energy.BLOCK, pos, side);
+        return handler == null ? null : GTMTransferAdapters.energyStorage(handler);
+    }
+
+    @Nullable
+    public static EnergyHandler getEnergyHandler(Level level, BlockPos pos, @Nullable Direction side) {
+        return level.getCapability(Capabilities.Energy.BLOCK, pos, side);
     }
 
     @Nullable

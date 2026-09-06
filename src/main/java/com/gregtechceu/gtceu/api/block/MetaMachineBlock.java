@@ -2,6 +2,12 @@ package com.gregtechceu.gtceu.api.block;
 
 import com.gregtechceu.gtceu.api.block.property.GTBlockStateProperties;
 import com.gregtechceu.gtceu.api.data.RotationState;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
+import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
+import com.gregtechceu.gtceu.api.capability.IWorkable;
+import com.gregtechceu.gtceu.api.capability.IControllable;
+import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -45,6 +51,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +64,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MetaMachineBlock extends Block implements ManagedSyncEntityBlock {
+public class MetaMachineBlock extends Block implements ManagedSyncEntityBlock, IGTCapabilityBlock {
 
     @Getter
     public final MachineDefinition definition;
@@ -372,6 +380,54 @@ public class MetaMachineBlock extends Block implements ManagedSyncEntityBlock {
 
     public Direction getFrontFacing(BlockState state) {
         return getRotationState() == RotationState.NONE ? Direction.NORTH : state.getValue(getRotationState().property);
+    }
+
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, blockEntity, side) -> {
+            if (blockEntity instanceof MetaMachine machine) {
+                var handler = machine.getItemHandlerCap(side, true);
+                return handler == null ? null : GTMTransferAdapters.item(handler);
+            }
+            return null;
+        }, this);
+        event.registerBlock(Capabilities.Fluid.BLOCK, (level, pos, state, blockEntity, side) -> {
+            if (blockEntity instanceof MetaMachine machine) {
+                var handler = machine.getFluidHandlerCap(side, true);
+                return handler == null ? null : GTMTransferAdapters.fluid(handler);
+            }
+            return null;
+        }, this);
+        event.registerBlock(Capabilities.Energy.BLOCK, (level, pos, state, blockEntity, side) -> {
+            if (blockEntity instanceof MetaMachine machine) {
+                var containers = MetaMachine.getCapabilitiesFromTraits(machine.getAllTraits(), side,
+                        IEnergyContainer.class);
+                if (!containers.isEmpty()) {
+                    return GTMTransferAdapters.energy(containers.size() == 1 ? containers.get(0) :
+                            new EnergyContainerList(containers));
+                }
+            }
+            return null;
+        }, this);
+        event.registerBlock(GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof MetaMachine machine ?
+                        machine.getCoverContainer() : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_WORKABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof MetaMachine machine ?
+                        machine instanceof IWorkable workable ? workable : machine.getAllTraits().stream()
+                                .filter(IWorkable.class::isInstance).map(IWorkable.class::cast).findFirst().orElse(null) : null,
+                this);
+        event.registerBlock(GTCapability.CAPABILITY_CONTROLLABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof MetaMachine machine ?
+                        machine instanceof IControllable controllable ? controllable : machine.getAllTraits().stream()
+                                .filter(IControllable.class::isInstance).map(IControllable.class::cast).findFirst().orElse(null) : null,
+                this);
+        event.registerBlock(GTCapability.CAPABILITY_ENERGY_CONTAINER,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof MetaMachine machine ?
+                        MetaMachine.getCapability(machine, GTCapability.CAPABILITY_ENERGY_CONTAINER, side) : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof MetaMachine machine ?
+                        MetaMachine.getCapability(machine, GTCapability.CAPABILITY_ENERGY_INFO_PROVIDER, side) : null,
+                this);
     }
 
     public static int colorTinted(BlockState blockState, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos,
