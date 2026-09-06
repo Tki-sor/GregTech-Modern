@@ -1,12 +1,17 @@
 package com.gregtechceu.gtceu.api.transfer.item;
 
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -88,9 +93,16 @@ public class CustomItemStackHandler extends ItemStackHandler
     }
 
     @Override
+    public CompoundTag serializeNBT() {
+        TagValueOutput output = TagValueOutput.createWithContext(new ProblemReporter.Collector(),
+                GTRegistries.builtinRegistry());
+        serialize(output);
+        return output.buildResult();
+    }
+
+    @Override
     public void deserializeNBT(CompoundTag nbt) {
-        if (nbt.getInt("Size") != stacks.size()) nbt.putInt("Size", stacks.size());
-        super.deserializeNBT(nbt);
+        deserialize(TagValueInput.create(new ProblemReporter.Collector(), GTRegistries.builtinRegistry(), nbt));
     }
 
     @Override

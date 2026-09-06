@@ -4,10 +4,12 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProp
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.misc.forge.SimpleThermalFluidHandlerItemStack;
 import com.gregtechceu.gtceu.api.misc.forge.ThermalFluidHandlerItemStack;
+import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -57,23 +59,22 @@ public class ThermalFluidStats implements IItemComponent, IComponentCapability, 
 
     @Override
     public void attachCapabilities(RegisterCapabilitiesEvent event, Item item) {
-        event.registerItem(Capabilities.Fluid.ITEM, (stack, context) -> {
-            if (allowPartialFill) {
-                return new ThermalFluidHandlerItemStack(stack, capacity, maxFluidTemperature, gasProof,
-                        acidProof, cryoProof, plasmaProof);
-            }
-            return new SimpleThermalFluidHandlerItemStack(stack, capacity, maxFluidTemperature, gasProof,
-                    acidProof, cryoProof, plasmaProof);
-        }, item);
+        event.registerItem(Capabilities.Fluid.ITEM, (stack, context) -> GTMTransferAdapters.fluid(
+                allowPartialFill
+                        ? new ThermalFluidHandlerItemStack(stack, capacity, maxFluidTemperature, gasProof, acidProof,
+                                cryoProof, plasmaProof)
+                        : new SimpleThermalFluidHandlerItemStack(stack, capacity, maxFluidTemperature, gasProof,
+                                acidProof, cryoProof, plasmaProof)),
+                item);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                 TooltipFlag isAdvanced) {
-        if (stack.hasTag()) {
+        if (stack.has(DataComponents.CUSTOM_DATA)) {
             FluidUtil.getFluidContained(stack).ifPresent(tank -> {
                 tooltipComponents
-                        .add(Component.translatable("gtceu.universal.tooltip.fluid_stored", tank.getDisplayName(),
+                        .add(Component.translatable("gtceu.universal.tooltip.fluid_stored", tank.getHoverName(),
                                 tank.getAmount()));
                 TooltipsHandler.appendFluidTooltips(tank, tooltipComponents::add, null);
             });

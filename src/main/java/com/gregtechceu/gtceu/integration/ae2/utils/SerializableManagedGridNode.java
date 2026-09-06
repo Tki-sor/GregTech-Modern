@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.integration.ae2.utils;
 
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
+
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import appeng.api.networking.IGridNodeListener;
 import appeng.me.ManagedGridNode;

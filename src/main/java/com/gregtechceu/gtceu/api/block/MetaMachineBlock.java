@@ -64,7 +64,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class MetaMachineBlock extends Block implements ManagedSyncEntityBlock {
+public class MetaMachineBlock extends Block implements ManagedSyncEntityBlock, IGTCapabilityBlock {
 
     @Getter
     public final MachineDefinition definition;

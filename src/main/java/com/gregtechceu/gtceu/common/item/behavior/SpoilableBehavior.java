@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.item.behavior;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.events.RegisterSpoilablesEvent;
 import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
 import com.gregtechceu.gtceu.api.item.component.SpoilContext;
@@ -17,9 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,10 +29,12 @@ import java.util.function.Supplier;
 
 /**
  * This object holds all spoilage-related data for specific item types,
- * NOT individual item stacks. This class handles attaching the {@link ISpoilableItem}
- * capability by registering its' instances to the {@link AttachCapabilitiesEvent}
+ * NOT individual item stacks. This class handles exposing the {@link ISpoilableItem}
+ * capability by registering per-item providers to the {@link RegisterCapabilitiesEvent}
  */
 public class SpoilableBehavior {
+
+    private static final List<SpoilableBehavior> REGISTERED = new ArrayList<>();
 
     private final Function<ItemStack, Long> ticks;
     private final SpoilResultProvider spoilResult;
@@ -57,28 +58,29 @@ public class SpoilableBehavior {
         this.ticks = ticks;
         this.spoilResult = spoilResult;
         this.spoilsIntoTooltip = spoilsIntoTooltip;
+        REGISTERED.add(this);
     }
 
     /**
-     * Registers this object to the {@link AttachCapabilitiesEvent} if it wasn't registered yet,
-     * and adds the specified item to the list of items that this will attach to.
-     * 
+     * Adds the specified item to the list of items that expose this spoilable behavior.
+     *
      * @param item the item to attach the behavior to
      * @return this
      */
     public SpoilableBehavior attachTo(ItemLike item) {
-        if (attachedTo.isEmpty()) {
-            NeoForge.EVENT_BUS.register(this);
-        }
         attachedTo.add(item.asItem());
         return this;
     }
 
-    @SubscribeEvent
-    public void attachCapability(AttachCapabilitiesEvent<ItemStack> event) {
-        ItemStack stack = event.getObject();
-        if (attachedTo.stream().anyMatch(stack::is)) {
-            event.addCapability(GTCEu.id("spoilable"), new SpoilableBehaviourStack(stack));
+    /**
+     * Registers the per-item spoilable capability providers for every registered behavior.
+     */
+    public static void attachCapabilities(RegisterCapabilitiesEvent event) {
+        for (SpoilableBehavior behavior : REGISTERED) {
+            if (behavior.attachedTo.isEmpty()) continue;
+            event.registerItem(GTCapability.CAPABILITY_SPOILABLE_ITEM,
+                    (stack, context) -> behavior.new SpoilableBehaviourStack(stack),
+                    behavior.attachedTo.toArray(Item[]::new));
         }
     }
 
@@ -194,7 +196,7 @@ public class SpoilableBehavior {
                 ItemStack total = prevResult.getSpoilResult(stack, spoilContext, simulate);
                 for (int i = 1; i < mult; i++) {
                     ItemStack temp = prevResult.getSpoilResult(stack, spoilContext, simulate);
-                    if (ItemStack.isSameItemSameTags(total, temp)) total.grow(temp.getCount());
+                    if (ItemStack.isSameItemSameComponents(total, temp)) total.grow(temp.getCount());
                 }
                 return total;
             }).tooltip(stack -> {

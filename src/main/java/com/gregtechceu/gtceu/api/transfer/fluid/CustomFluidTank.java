@@ -1,7 +1,12 @@
 package com.gregtechceu.gtceu.api.transfer.fluid;
 
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
+
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -66,15 +71,22 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
 
     @Override
     public CompoundTag serializeNBT() {
-        var tag = new CompoundTag();
-        if (isEmpty() || getFluidAmount() <= 0) tag.putBoolean("isNull", true);
-        return writeToNBT(tag);
+        CompoundTag tag = new CompoundTag();
+        if (isEmpty() || getFluidAmount() <= 0) {
+            tag.putBoolean("isNull", true);
+            return tag;
+        }
+        TagValueOutput output = TagValueOutput.createWithContext(new ProblemReporter.Collector(),
+                GTRegistries.builtinRegistry());
+        serialize(output);
+        tag.merge(output.buildResult());
+        return tag;
     }
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        if (nbt.getBoolean("isNull")) return;
-        readFromNBT(nbt);
+        if (nbt.getBooleanOr("isNull", false)) return;
+        deserialize(TagValueInput.create(new ProblemReporter.Collector(), GTRegistries.builtinRegistry(), nbt));
     }
 
     @Override
@@ -99,7 +111,7 @@ public class CustomFluidTank extends FluidTank implements IFluidHandlerModifiabl
 
     @Override
     public boolean isValid(int index, FluidResource resource) {
-        return resource.isEmpty() || isFluidValid(index, resource.toStack());
+        return resource.isEmpty() || isFluidValid(index, resource.toStack(1));
     }
 
     @Override

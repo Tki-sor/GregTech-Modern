@@ -191,7 +191,7 @@ public final class GTMTransferAdapters {
 
         @Override
         public boolean isValid(int index, FluidResource resource) {
-            return resource.isEmpty() || delegate.isFluidValid(index, resource.toStack());
+            return resource.isEmpty() || delegate.isFluidValid(index, resource.toStack(1));
         }
 
         @Override

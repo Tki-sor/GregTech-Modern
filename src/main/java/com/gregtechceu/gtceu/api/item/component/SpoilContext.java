@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.item.component;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 
 import net.minecraft.core.BlockPos;
@@ -17,7 +18,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -42,6 +43,33 @@ public record SpoilContext(@Nullable Level level,
                            @Nullable ItemHandlerSource itemHandlerSource,
                            @Nullable CompoundTag itemHandlerData,
                            int slot) {
+
+    // Hand-written with methods: Lombok's @With is not applied reliably on records under the
+    // Java 25 toolchain, and the sync/spoil paths depend on these always being present.
+
+    public SpoilContext withLevel(@Nullable Level level) {
+        return new SpoilContext(level, pos, entity, itemHandlerSource, itemHandlerData, slot);
+    }
+
+    public SpoilContext withPos(@Nullable BlockPos pos) {
+        return new SpoilContext(level, pos, entity, itemHandlerSource, itemHandlerData, slot);
+    }
+
+    public SpoilContext withEntity(@Nullable Entity entity) {
+        return new SpoilContext(level, pos, entity, itemHandlerSource, itemHandlerData, slot);
+    }
+
+    public SpoilContext withItemHandlerSource(@Nullable ItemHandlerSource itemHandlerSource) {
+        return new SpoilContext(level, pos, entity, itemHandlerSource, itemHandlerData, slot);
+    }
+
+    public SpoilContext withItemHandlerData(@Nullable CompoundTag itemHandlerData) {
+        return new SpoilContext(level, pos, entity, itemHandlerSource, itemHandlerData, slot);
+    }
+
+    public SpoilContext withSlot(int slot) {
+        return new SpoilContext(level, pos, entity, itemHandlerSource, itemHandlerData, slot);
+    }
 
     /**
      * @return the {@link Level} used to determine time to calculate spoilage progress (using
@@ -101,7 +129,7 @@ public record SpoilContext(@Nullable Level level,
 
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
-        if (level != null) tag.putString("level", level.dimensionTypeId().location().toString());
+        if (level != null) tag.putString("level", level.dimension().identifier().toString());
         if (pos != null) tag.putLong("pos", pos.asLong());
         if (entity != null) tag.putInt("entity", entity.getId());
         if (slot != -1) tag.putInt("slot", slot);
@@ -115,23 +143,23 @@ public record SpoilContext(@Nullable Level level,
         if (tag.contains("level")) {
             ctx = ctx.withLevel(ServerLifecycleHooks.getCurrentServer().getLevel(ResourceKey.create(
                     Registries.DIMENSION,
-                    new Identifier(tag.getString("level")))));
+                    Identifier.parse(tag.getString("level").orElseThrow()))));
         }
         if (tag.contains("pos")) {
-            ctx = ctx.withPos(BlockPos.of(tag.getLong("pos")));
+            ctx = ctx.withPos(BlockPos.of(tag.getLong("pos").orElseThrow()));
         }
         if (tag.contains("entity") && ctx.level != null) {
-            ctx = ctx.withEntity(ctx.level.getEntity(tag.getInt("entity")));
+            ctx = ctx.withEntity(ctx.level.getEntity(tag.getInt("entity").orElseThrow()));
         }
         if (tag.contains("slot")) {
-            ctx = ctx.withSlot(tag.getInt("slot"));
+            ctx = ctx.withSlot(tag.getInt("slot").orElseThrow());
         }
         if (tag.contains("handlerSource")) {
             ctx = ctx.withItemHandlerSource(
-                    ItemHandlerSource.getById(new Identifier(tag.getString("handlerSource"))));
+                    ItemHandlerSource.getById(Identifier.parse(tag.getString("handlerSource").orElseThrow())));
         }
         if (tag.contains("handlerData")) {
-            ctx = ctx.withItemHandlerData(tag.getCompound("handlerData"));
+            ctx = ctx.withItemHandlerData(tag.getCompound("handlerData").orElseGet(CompoundTag::new));
         }
         return ctx;
     }
@@ -157,13 +185,9 @@ public record SpoilContext(@Nullable Level level,
             protected @Nullable IItemHandler getHandler(SpoilContext ctx) {
                 if (ctx.level() == null || ctx.pos() == null || ctx.itemHandlerData() == null) return null;
                 CompoundTag tag = ctx.itemHandlerData();
-                BlockEntity blockEntity = ctx.level().getBlockEntity(ctx.pos());
-                if (blockEntity == null) return null;
-                if (!tag.contains("side"))
-                    return blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).resolve().orElse(null);
-                return blockEntity
-                        .getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.byName(tag.getString("side")))
-                        .resolve().orElse(null);
+                Direction side = Direction.byName(tag.getString("side").orElse(""));
+                var handler = ctx.level().getCapability(Capabilities.Item.BLOCK, ctx.pos(), side);
+                return handler == null ? null : GTMTransferAdapters.itemHandler(handler);
             }
         };
 
@@ -176,7 +200,7 @@ public record SpoilContext(@Nullable Level level,
             @Override
             protected @Nullable IItemHandler getHandler(SpoilContext ctx) {
                 if (ctx.entity instanceof Player player) {
-                    return new CustomItemStackHandler(player.getInventory().items);
+                    return new CustomItemStackHandler(player.getInventory().getNonEquipmentItems());
                 } else return null;
             }
         };

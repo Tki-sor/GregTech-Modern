@@ -1,10 +1,11 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +73,7 @@ public class VirtualRegistryMap implements INBTSerializable<CompoundTag> {
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        for (String entryTypeString : nbt.getAllKeys()) {
+        for (String entryTypeString : nbt.keySet()) {
             Identifier entryTypeLoc = Identifier.tryParse(entryTypeString);
             if (entryTypeLoc == null) continue;
             EntryTypes<?> type = EntryTypes.fromLocation(entryTypeLoc);
@@ -82,8 +83,8 @@ public class VirtualRegistryMap implements INBTSerializable<CompoundTag> {
 
             // backwards compat
             if (virtualEntries instanceof CompoundTag compoundTag) {
-                for (String name : compoundTag.getAllKeys()) {
-                    CompoundTag entryTag = compoundTag.getCompound(name);
+                for (String name : compoundTag.keySet()) {
+                    CompoundTag entryTag = compoundTag.getCompound(name).orElseGet(CompoundTag::new);
                     VirtualEntry entry = type.createInstance(entryTag);
                     if (entry.canRemove()) continue;
                     addEntry(entry.getColorStr(), type.createInstance(entryTag));
@@ -91,7 +92,7 @@ public class VirtualRegistryMap implements INBTSerializable<CompoundTag> {
             } else {
                 ListTag listTag = (ListTag) virtualEntries;
                 for (int i = 0; i < Objects.requireNonNull(listTag).size(); i++) {
-                    var entry = type.createInstance(listTag.getCompound(i));
+                    var entry = type.createInstance(listTag.getCompound(i).orElseGet(CompoundTag::new));
                     if (entry.canRemove()) continue;
                     addEntry(entry.getColorStr(), entry);
                 }

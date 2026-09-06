@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.api.transfer.fluid;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
@@ -145,13 +145,12 @@ public class FluidHandlerList implements IFluidHandlerModifiable, INBTSerializab
             }
         }
         tag.put("tanks", list);
-        tag.putByte("type", list.getElementType());
         return tag;
     }
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        var list = nbt.getList("tanks", nbt.getByte("type"));
+        var list = nbt.getList("tanks").orElseGet(ListTag::new);
         for (int i = 0; i < list.size(); i++) {
             if (handlers[i] instanceof INBTSerializable serializable) {
                 serializable.deserializeNBT(list.get(i));

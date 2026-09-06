@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.api.misc.virtualregistry;
 
+import com.gregtechceu.gtceu.api.data.serialization.INBTSerializable;
+
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -68,10 +69,10 @@ public abstract class VirtualEntry implements INBTSerializable<CompoundTag> {
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        setColor(nbt.getString(COLOR_KEY));
+        setColor(nbt.getString(COLOR_KEY).orElse(""));
 
         if (nbt.contains(DESC_KEY))
-            this.description = nbt.getString(DESC_KEY);
+            this.description = nbt.getString(DESC_KEY).orElse("");
     }
 
     public boolean canRemove() {

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.capability;
 
 import com.gregtechceu.gtceu.api.item.component.ISpoilableItem;
+import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 import com.gregtechceu.gtceu.common.capability.MedicalConditionTracker;
 
 import net.minecraft.core.BlockPos;
@@ -13,11 +14,10 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
-
-import com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,13 +32,15 @@ public class GTCapabilityHelper {
 
     @Nullable
     public static IEnergyStorage getForgeEnergyItem(ItemStack itemStack) {
-        EnergyHandler handler = itemStack.getCapability(Capabilities.Energy.ITEM);
+        EnergyHandler handler = getEnergyHandler(itemStack);
         return handler == null ? null : GTMTransferAdapters.energyStorage(handler);
     }
 
     @Nullable
     public static EnergyHandler getEnergyHandler(ItemStack itemStack) {
-        return itemStack.getCapability(Capabilities.Energy.ITEM);
+        // ItemAccess.forStack throws for empty stacks; an empty stack never exposes energy.
+        return itemStack.isEmpty() ? null
+                : itemStack.getCapability(Capabilities.Energy.ITEM, ItemAccess.forStack(itemStack));
     }
 
     @Nullable
