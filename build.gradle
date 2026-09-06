@@ -85,6 +85,7 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs << "-Xlint:-removal"
     options.compilerArgs << "-Aquiet=true" // Suppress mixin notes
+    options.compilerArgs << "-Xmaxerrs" << "10000"
 }
 
 lombok {

@@ -38,6 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +78,15 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
         return LevelEnergyNet.getOrCreate(level);
     }
 
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(GTCapability.CAPABILITY_ENERGY_CONTAINER,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof CableBlockEntity cable ?
+                        cable.getEnergyContainer(side) : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof PipeBlockEntity<?, ?> pipe ?
+                        pipe.getCoverContainer() : null, this);
+    }
+
     @Override
     public BlockEntityType<? extends PipeBlockEntity<Insulation, WireProperties>> getBlockEntityType() {
         return GTBlockEntities.CABLE.get();
@@ -91,8 +101,9 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
     @Override
     public boolean canPipeConnectToBlock(IPipeNode<Insulation, WireProperties> selfTile, Direction side,
                                          @Nullable BlockEntity tile) {
-        return tile != null &&
-                tile.getCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, side.getOpposite()).isPresent();
+        return tile != null && tile.getLevel() != null &&
+                tile.getLevel().getCapability(GTCapability.CAPABILITY_ENERGY_CONTAINER, tile.getBlockPos(),
+                        side.getOpposite()) != null;
     }
 
     @Override

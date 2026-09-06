@@ -26,6 +26,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +65,15 @@ public class DuctPipeBlock extends PipeBlock<DuctPipeType, DuctPipeProperties, L
         DuctPipeType pipeType = pipeTile.getPipeType();
         if (pipeType == null) return getFallbackType();
         return this.pipeType.modifyProperties(properties);
+    }
+
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(GTCapability.CAPABILITY_HAZARD_CONTAINER,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof DuctPipeBlockEntity pipe ?
+                        pipe.getHazardHandler(side) : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof PipeBlockEntity<?, ?> pipe ?
+                        pipe.getCoverContainer() : null, this);
     }
 
     @Override

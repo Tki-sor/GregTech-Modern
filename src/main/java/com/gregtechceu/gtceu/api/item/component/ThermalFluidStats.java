@@ -12,9 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.capabilities.Capability;
-import net.neoforged.neoforge.capabilities.ForgeCapabilities;
-import net.neoforged.neoforge.common.util.LazyOptional;
+import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,18 +56,15 @@ public class ThermalFluidStats implements IItemComponent, IComponentCapability, 
     }
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(ItemStack itemStack, @NotNull Capability<T> cap) {
-        if (cap == ForgeCapabilities.FLUID_HANDLER_ITEM) {
-            return ForgeCapabilities.FLUID_HANDLER_ITEM.orEmpty(cap, LazyOptional.of(() -> {
-                if (allowPartialFill) {
-                    return new ThermalFluidHandlerItemStack(itemStack, capacity, maxFluidTemperature, gasProof,
-                            acidProof, cryoProof, plasmaProof);
-                }
-                return new SimpleThermalFluidHandlerItemStack(itemStack, capacity, maxFluidTemperature, gasProof,
+    public void attachCapabilities(RegisterCapabilitiesEvent event, Item item) {
+        event.registerItem(Capabilities.Fluid.ITEM, (stack, context) -> {
+            if (allowPartialFill) {
+                return new ThermalFluidHandlerItemStack(stack, capacity, maxFluidTemperature, gasProof,
                         acidProof, cryoProof, plasmaProof);
-            }));
-        }
-        return LazyOptional.empty();
+            }
+            return new SimpleThermalFluidHandlerItemStack(stack, capacity, maxFluidTemperature, gasProof,
+                    acidProof, cryoProof, plasmaProof);
+        }, item);
     }
 
     @Override

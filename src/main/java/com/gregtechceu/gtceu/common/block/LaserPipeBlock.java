@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -75,6 +76,15 @@ public class LaserPipeBlock extends PipeBlock<LaserPipeType, LaserPipeProperties
     @Override
     public LevelLaserPipeNet getWorldPipeNet(ServerLevel world) {
         return LevelLaserPipeNet.getOrCreate(world);
+    }
+
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(GTCapability.CAPABILITY_LASER,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof LaserPipeBlockEntity pipe ?
+                        pipe.getLaserHandler(side) : null, this);
+        event.registerBlock(GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof PipeBlockEntity<?, ?> pipe ?
+                        pipe.getCoverContainer() : null, this);
     }
 
     @Override

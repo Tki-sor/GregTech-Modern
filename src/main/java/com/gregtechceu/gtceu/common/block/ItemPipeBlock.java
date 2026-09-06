@@ -22,7 +22,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.neoforged.neoforge.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +59,18 @@ public class ItemPipeBlock extends MaterialPipeBlock<ItemPipeType, ItemPipePrope
         return LevelItemPipeNet.getOrCreate(level);
     }
 
+    public void attachCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, blockEntity, side) -> {
+            if (level.isClientSide || !(blockEntity instanceof ItemPipeBlockEntity pipe) || side == null ||
+                    !pipe.isConnected(side)) return null;
+            var handler = pipe.getHandler(side, true);
+            return handler == null ? null : com.gregtechceu.gtceu.api.transfer.GTMTransferAdapters.item(handler);
+        }, this);
+        event.registerBlock(com.gregtechceu.gtceu.api.capability.GTCapability.CAPABILITY_COVERABLE,
+                (level, pos, state, blockEntity, side) -> blockEntity instanceof ItemPipeBlockEntity pipe ?
+                        pipe.getCoverContainer() : null, this);
+    }
+
     @Override
     public BlockEntityType<? extends PipeBlockEntity<ItemPipeType, ItemPipeProperties>> getBlockEntityType() {
         return GTBlockEntities.ITEM_PIPE.get();
@@ -89,7 +102,7 @@ public class ItemPipeBlock extends MaterialPipeBlock<ItemPipeType, ItemPipePrope
     @Override
     public boolean canPipeConnectToBlock(IPipeNode<ItemPipeType, ItemPipeProperties> selfTile, Direction side,
                                          @Nullable BlockEntity tile) {
-        return tile != null &&
-                tile.getCapability(ForgeCapabilities.ITEM_HANDLER, side.getOpposite()).isPresent();
+        return tile != null && tile.getLevel() != null &&
+                tile.getLevel().getCapability(Capabilities.Item.BLOCK, tile.getBlockPos(), side.getOpposite()) != null;
     }
 }
