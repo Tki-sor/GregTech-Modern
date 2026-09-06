@@ -116,7 +116,6 @@ public class CommonProxy {
     public static void init(IEventBus modBus) {
         GTRegistries.init(modBus);
         GTDatapackRegistries.init(modBus);
-        GTDatapackRegistries.init(modBus);
         CommonProxy proxy = new CommonProxy(modBus);
         proxy.initContent(modBus);
     }
