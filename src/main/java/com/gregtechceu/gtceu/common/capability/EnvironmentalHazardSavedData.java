@@ -17,7 +17,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -301,7 +301,7 @@ public class EnvironmentalHazardSavedData extends SavedData {
             boolean canSpread = zoneTag.getBoolean("can_spread");
             HazardProperty.HazardTrigger trigger = HazardProperty.HazardTrigger.ALL_TRIGGERS
                     .get(zoneTag.getString("trigger"));
-            ResourceLocation id = GTCEu.id(zoneTag.getString("condition"));
+            Identifier id = GTCEu.id(zoneTag.getString("condition"));
             if (!GTRegistries.MEDICAL_CONDITIONS.containsKey(id)) {
                 return null;
             }
@@ -315,7 +315,7 @@ public class EnvironmentalHazardSavedData extends SavedData {
             buf.writeFloat(strength);
             buf.writeBoolean(canSpread);
             buf.writeUtf(trigger.name());
-            buf.writeResourceLocation(condition.id);
+            buf.writeIdentifier(condition.id);
         }
 
         public static HazardZone fromNetwork(FriendlyByteBuf buf) {
@@ -323,7 +323,7 @@ public class EnvironmentalHazardSavedData extends SavedData {
             float strength = buf.readFloat();
             boolean canSpread = buf.readBoolean();
             HazardProperty.HazardTrigger trigger = HazardProperty.HazardTrigger.ALL_TRIGGERS.get(buf.readUtf());
-            MedicalCondition condition = GTRegistries.MEDICAL_CONDITIONS.get(buf.readResourceLocation());
+            MedicalCondition condition = GTRegistries.MEDICAL_CONDITIONS.get(buf.readIdentifier());
             return new HazardZone(source, strength, canSpread, trigger, condition);
         }
     }

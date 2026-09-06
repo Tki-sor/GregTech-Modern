@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.integration.recipeviewer;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.integration.recipeviewer.jei.GTJEIPlugin;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.emi.emi.api.render.EmiRenderable;
@@ -20,7 +20,7 @@ public class CategoryIcon {
 
     private Object wrappedValue;
 
-    public CategoryIcon(ResourceLocation texture) {
+    public CategoryIcon(Identifier texture) {
         if (!GTCEu.isClientSide()) return;
         if (GTCEu.Mods.isEMILoaded()) {
             wrappedValue = EmiCallWrapper.getRenderable(texture);
@@ -48,7 +48,7 @@ public class CategoryIcon {
 
     private static class EmiCallWrapper {
 
-        public static EmiRenderable getRenderable(ResourceLocation location) {
+        public static EmiRenderable getRenderable(Identifier location) {
             return new EmiTexture(location, 0, 0, 16, 16, 16, 16, 16, 16);
         }
 
@@ -59,7 +59,7 @@ public class CategoryIcon {
 
     private static class ReiCallWrapper {
 
-        public static Renderer getRenderable(ResourceLocation location) {
+        public static Renderer getRenderable(Identifier location) {
             return Widgets.createTexturedWidget(location, 0, 0, 16, 16);
         }
 
@@ -70,7 +70,7 @@ public class CategoryIcon {
 
     private static class JeiCallWrapper {
 
-        public static IDrawable getRenderable(ResourceLocation location) {
+        public static IDrawable getRenderable(Identifier location) {
             return GTJEIPlugin.getRuntime().getJeiHelpers().getGuiHelper().drawableBuilder(location, 0, 0, 16, 16)
                     .setTextureSize(16, 16).build();
         }

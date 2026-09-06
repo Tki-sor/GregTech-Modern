@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.core.mixins;
 import com.gregtechceu.gtceu.api.item.IMergeableNBTSerializable;
 
 import net.minecraft.nbt.Tag;
-import net.minecraftforge.common.capabilities.CapabilityDispatcher;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.capabilities.CapabilityDispatcher;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

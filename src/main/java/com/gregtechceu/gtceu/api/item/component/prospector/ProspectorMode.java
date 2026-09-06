@@ -21,8 +21,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,9 +31,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import brachy.modularui.api.drawable.IDrawable;
 import brachy.modularui.drawable.FluidDrawable;
@@ -132,10 +132,10 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public String getUniqueId(Either<Material, BlockState> item) {
-            return item.map(material -> MATERIAL_PREFIX + material.getResourceLocation(),
+            return item.map(material -> MATERIAL_PREFIX + material.getIdentifier(),
                     state -> state.getBlockHolder().unwrapKey()
                             .map(ResourceKey::location)
-                            .map(ResourceLocation::toString)
+                            .map(Identifier::toString)
                             .orElse("Unknown entry ???"));
         }
 
@@ -143,7 +143,7 @@ public abstract class ProspectorMode<T> {
         public void serialize(Either<Material, BlockState> item, FriendlyByteBuf buf) {
             item.ifLeft(material -> {
                 buf.writeBoolean(true);
-                buf.writeResourceLocation(material.getResourceLocation());
+                buf.writeIdentifier(material.getIdentifier());
             }).ifRight(state -> {
                 buf.writeBoolean(false);
                 buf.writeNbt(NbtUtils.writeBlockState(state));
@@ -153,7 +153,7 @@ public abstract class ProspectorMode<T> {
         @Override
         public Either<Material, BlockState> deserialize(FriendlyByteBuf buf) {
             if (buf.readBoolean()) {
-                return Either.left(GTRegistries.MATERIALS.get(buf.readResourceLocation()));
+                return Either.left(GTRegistries.MATERIALS.get(buf.readIdentifier()));
             } else {
                 CompoundTag tag = buf.readNbt();
                 assert tag != null;
@@ -200,7 +200,7 @@ public abstract class ProspectorMode<T> {
         }
 
         public static FluidInfo fromNbt(CompoundTag tag) {
-            Fluid fluid = BuiltInRegistries.FLUID.get(ResourceLocation.parse(tag.getString("fluid")));
+            Fluid fluid = BuiltInRegistries.FLUID.get(Identifier.parse(tag.getString("fluid")));
             int left = tag.getInt("left");
             int yield = tag.getInt("yield");
             return new FluidInfo(fluid, yield, left);
@@ -265,14 +265,14 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void serialize(FluidInfo item, FriendlyByteBuf buf) {
-            buf.writeResourceLocation(BuiltInRegistries.FLUID.getKey(item.fluid));
+            buf.writeIdentifier(BuiltInRegistries.FLUID.getKey(item.fluid));
             buf.writeVarInt(item.yield);
             buf.writeVarInt(item.left);
         }
 
         @Override
         public FluidInfo deserialize(FriendlyByteBuf buf) {
-            return new FluidInfo(BuiltInRegistries.FLUID.get(buf.readResourceLocation()), buf.readVarInt(),
+            return new FluidInfo(BuiltInRegistries.FLUID.get(buf.readIdentifier()), buf.readVarInt(),
                     buf.readVarInt());
         }
 
@@ -357,7 +357,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void serialize(BedrockOreInfo item, FriendlyByteBuf buf) {
-            buf.writeResourceLocation(item.material.getResourceLocation());
+            buf.writeIdentifier(item.material.getIdentifier());
             buf.writeVarInt(item.weight);
             buf.writeVarInt(item.left);
             buf.writeVarInt(item.yield);
@@ -365,7 +365,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public BedrockOreInfo deserialize(FriendlyByteBuf buf) {
-            ResourceLocation materialId = buf.readResourceLocation();
+            Identifier materialId = buf.readIdentifier();
             return new BedrockOreInfo(
                     GTRegistries.MATERIALS.get(materialId),
                     buf.readVarInt(), buf.readVarInt(), buf.readVarInt());

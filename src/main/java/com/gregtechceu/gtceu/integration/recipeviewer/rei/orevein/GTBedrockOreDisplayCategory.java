@@ -11,7 +11,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.integration.recipeviewer.widgets.OreVeinRecipeWidget;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import brachy.modularui.integration.rei.recipe.ModularUIREIDisplay;
 import brachy.modularui.integration.rei.recipe.ModularUIREIDisplayCategory;
@@ -69,7 +69,7 @@ public class GTBedrockOreDisplayCategory extends
 
         private final BedrockOreDefinition bedrockOre;
 
-        public GTBedrockOreDisplay(ResourceLocation id, BedrockOreDefinition bedrockOre) {
+        public GTBedrockOreDisplay(Identifier id, BedrockOreDefinition bedrockOre) {
             super(id, () -> new OreVeinRecipeWidget(bedrockOre), CATEGORY);
             this.bedrockOre = bedrockOre;
         }

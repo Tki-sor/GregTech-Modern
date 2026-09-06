@@ -22,7 +22,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import brachy.modularui.api.drawable.Text;
 import brachy.modularui.drawable.FluidDrawable;
@@ -527,7 +528,8 @@ public class GTMultiblockTextUtil {
         double countD = 1;
         // number of items output which is actually displayed. Can be either a number, or a range.
         Component displaycount;
-        if (itemOutput.content() instanceof IntProviderIngredient provider) {
+        if (itemOutput.content() instanceof Ingredient ingredient
+                && IntProviderIngredient.get(ingredient) instanceof IntProviderIngredient provider) {
             rounded = true;
             stack = provider.getMaxSizeStack();
             displaycount = Component.translatable("gtceu.gui.content.range",

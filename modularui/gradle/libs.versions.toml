@@ -1,0 +1,27 @@
+[versions]
+minecraft = "26.1.2"
+neoForge = "26.1.2.103"
+loader = "4"
+modDevGradle = "2.0.146"
+lombok = "8.14"
+annotations = "26.0.2-1"
+evalEx = "3.6.0"
+jei = "29.35.0.94"
+rei = "26.1.819"
+curios = "15.0.0+26.1.2"
+
+[libraries]
+annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+evalEx = { module = "com.ezylang:EvalEx", version.ref = "evalEx" }
+jei-common-api = { module = "mezz.jei:jei-26.1.2-common-api", version.ref = "jei" }
+jei-common = { module = "mezz.jei:jei-26.1.2-common", version.ref = "jei" }
+jei-gui = { module = "mezz.jei:jei-26.1.2-gui", version.ref = "jei" }
+jei-neoforge-api = { module = "mezz.jei:jei-26.1.2-neoforge-api", version.ref = "jei" }
+rei-plugin = { module = "me.shedaniel:RoughlyEnoughItems-default-plugin", version.ref = "rei" }
+rei-api = { module = "me.shedaniel:RoughlyEnoughItems-api-neoforge", version.ref = "rei" }
+rei-neoforge = { module = "me.shedaniel:RoughlyEnoughItems-neoforge", version.ref = "rei" }
+curios = { module = "top.theillusivec4.curios:curios-neoforge", version.ref = "curios" }
+
+[plugins]
+modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }

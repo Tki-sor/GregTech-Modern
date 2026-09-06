@@ -10,8 +10,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.neoforged.neoforge.client.gui.overlay.ForgeGui;
+import net.neoforged.neoforge.client.gui.overlay.IGuiOverlay;
 
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;

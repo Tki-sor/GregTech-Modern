@@ -75,7 +75,7 @@ public class GTOreProcessingEmiCategory extends EmiRecipeCategory {
         final GTOreByProduct byProduct;
 
         public GTEmiOreProcessingWrapper(Material material) {
-            super(material.getResourceLocation().withPrefix("/ore_proc/"),
+            super(material.getIdentifier().withPrefix("/ore_proc/"),
                     () -> new OreProcessingRecipeWidget(material));
             this.material = material;
             byProduct = new GTOreByProduct(material);

@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.integration.recipeviewer.widgets.OreVeinRecipeWidget;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -65,7 +65,7 @@ public class GTOreVeinDisplayCategory extends ModularUIREIDisplayCategory<GTOreV
 
         private final GTOreDefinition oreDefinition;
 
-        public GTOreVeinDisplay(ResourceLocation id, GTOreDefinition oreDefinition) {
+        public GTOreVeinDisplay(Identifier id, GTOreDefinition oreDefinition) {
             super(id, () -> new OreVeinRecipeWidget(oreDefinition), CATEGORY);
             this.oreDefinition = oreDefinition;
         }

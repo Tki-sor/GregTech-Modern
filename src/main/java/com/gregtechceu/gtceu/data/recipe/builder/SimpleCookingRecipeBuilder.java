@@ -2,16 +2,17 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonObject;
 import lombok.Setter;
@@ -38,27 +39,27 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
     @Setter
     protected int cookingTime;
     @Setter
-    protected @Nullable ResourceLocation id;
+    protected @Nullable Identifier id;
 
-    protected SimpleCookingRecipeBuilder(@Nullable ResourceLocation id, String folder, RecipeSerializer<T> serializer) {
+    protected SimpleCookingRecipeBuilder(@Nullable Identifier id, String folder, RecipeSerializer<T> serializer) {
         this.id = id;
         this.folder = folder;
         this.serializer = serializer;
     }
 
-    public static SimpleCookingRecipeBuilder<CampfireCookingRecipe> campfireCooking(@Nullable ResourceLocation id) {
+    public static SimpleCookingRecipeBuilder<CampfireCookingRecipe> campfireCooking(@Nullable Identifier id) {
         return new SimpleCookingRecipeBuilder<>(id, "campfire_cooking", RecipeSerializer.CAMPFIRE_COOKING_RECIPE);
     }
 
-    public static SimpleCookingRecipeBuilder<SmeltingRecipe> smelting(@Nullable ResourceLocation id) {
+    public static SimpleCookingRecipeBuilder<SmeltingRecipe> smelting(@Nullable Identifier id) {
         return new SimpleCookingRecipeBuilder<>(id, "smelting", RecipeSerializer.SMELTING_RECIPE);
     }
 
-    public static SimpleCookingRecipeBuilder<BlastingRecipe> blasting(@Nullable ResourceLocation id) {
+    public static SimpleCookingRecipeBuilder<BlastingRecipe> blasting(@Nullable Identifier id) {
         return new SimpleCookingRecipeBuilder<>(id, "blasting", RecipeSerializer.BLASTING_RECIPE);
     }
 
-    public static SimpleCookingRecipeBuilder<SmokingRecipe> smoking(@Nullable ResourceLocation id) {
+    public static SimpleCookingRecipeBuilder<SmokingRecipe> smoking(@Nullable Identifier id) {
         return new SimpleCookingRecipeBuilder<>(id, "smoking", RecipeSerializer.SMOKING_RECIPE);
     }
 
@@ -90,7 +91,7 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
         return this;
     }
 
-    protected ResourceLocation defaultId() {
+    protected Identifier defaultId() {
         return BuiltInRegistries.ITEM.getKey(output.getItem());
     }
 
@@ -108,7 +109,7 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
             throw new IllegalArgumentException(id + ": output item is empty");
         }
 
-        json.add("ingredient", input.toJson());
+        json.add("ingredient", IngredientUtils.toJson(input));
 
         JsonObject result = new JsonObject();
         result.addProperty("item", BuiltInRegistries.ITEM.getKey(output.getItem()).toString());
@@ -125,7 +126,7 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
     }
 
     public void save(Consumer<FinishedRecipe> consumer) {
-        ResourceLocation recipeId = (id == null ? defaultId() : id).withPrefix(folder + "/");
+        Identifier recipeId = (id == null ? defaultId() : id).withPrefix(folder + "/");
 
         consumer.accept(new FinishedRecipe() {
 
@@ -135,7 +136,7 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
             }
 
             @Override
-            public ResourceLocation getId() {
+            public Identifier getId() {
                 return recipeId;
             }
 
@@ -152,7 +153,7 @@ public class SimpleCookingRecipeBuilder<T extends AbstractCookingRecipe> {
 
             @Nullable
             @Override
-            public ResourceLocation getAdvancementId() {
+            public Identifier getAdvancementId() {
                 return null;
             }
         });

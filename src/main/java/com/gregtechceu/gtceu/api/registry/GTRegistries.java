@@ -26,16 +26,24 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.NewRegistryEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.registries.RegistryBuilder;
 
 import org.jetbrains.annotations.ApiStatus;
 
 public final class GTRegistries {
+
+    public static final class Keys {
+        private Keys() {}
+
+        public static final ResourceKey<Registry<GTOreDefinition>> ORE_VEIN = ResourceKey.createRegistryKey(GTCEu.id("ore_vein"));
+        public static final ResourceKey<Registry<BedrockOreDefinition>> BEDROCK_ORE = ResourceKey.createRegistryKey(GTCEu.id("bedrock_ore"));
+        public static final ResourceKey<Registry<BedrockFluidDefinition>> BEDROCK_FLUID = ResourceKey.createRegistryKey(GTCEu.id("bedrock_fluid"));
+    }
 
     // spotless:off
 
@@ -74,21 +82,94 @@ public final class GTRegistries {
     public static final GTRegistry.RL<PatternError.PatternErrorType> PATTERN_ERRORS = new GTRegistry.RL<>(
             GTCEu.id("pattern_errors"));
 
+    private static final Map<ResourceKey<? extends Registry<?>>, GTRegistry<?, ?>> CUSTOM_REGISTRIES = new LinkedHashMap<>();
+    private static final Map<ResourceKey<? extends Registry<?>>, Registry<?>> NEOFORGE_REGISTRIES = new LinkedHashMap<>();
+    private static final Map<ResourceKey<? extends Registry<?>>, Map<Identifier, Object>> PENDING_REGISTRATIONS = new LinkedHashMap<>();
+
+    static {
+        registerBacking(MATERIALS);
+        registerBacking(ELEMENTS);
+        registerBacking(TAG_PREFIXES);
+        registerBacking(MATERIAL_ICON_SETS);
+        registerBacking(RECIPE_TYPES);
+        registerBacking(RECIPE_CATEGORIES);
+        registerBacking(RECIPE_CAPABILITIES);
+        registerBacking(RECIPE_CONDITIONS);
+        registerBacking(CHANCE_LOGICS);
+        registerBacking(BEDROCK_FLUID_DEFINITIONS);
+        registerBacking(BEDROCK_ORE_DEFINITIONS);
+        registerBacking(ORE_VEINS);
+        registerBacking(WORLD_GEN_LAYERS);
+        registerBacking(COVERS);
+        registerBacking(MACHINES);
+        registerBacking(SOUNDS);
+        registerBacking(DIMENSION_MARKERS);
+        registerBacking(MEDICAL_CONDITIONS);
+        registerBacking(PLACEHOLDERS);
+        registerBacking(PATTERN_ERRORS);
+    }
+
 
     // spotless:on
 
-    public static <V, T extends V> T register(Registry<V> registry, ResourceLocation name, T value) {
-        ResourceKey<?> registryKey = registry.key();
+    public static <V, T extends V> T register(Registry<V> registry, Identifier name, T value) {
+        PENDING_REGISTRATIONS.computeIfAbsent(registry.key(), ignored -> new LinkedHashMap<>()).put(name, value);
+        return value;
+    }
 
-        if (registryKey == Registries.RECIPE_TYPE) {
-            ForgeRegistries.RECIPE_TYPES.register(name, (RecipeType<?>) value);
-        } else if (registryKey == Registries.RECIPE_SERIALIZER) {
-            ForgeRegistries.RECIPE_SERIALIZERS.register(name, (RecipeSerializer<?>) value);
-        } else {
-            return Registry.register(registry, name, value);
+    private static <T> void registerBacking(GTRegistry<?, T> registry) {
+        ResourceKey<Registry<T>> key = ResourceKey.createRegistryKey(registry.getRegistryName());
+        CUSTOM_REGISTRIES.put(key, registry);
+        NEOFORGE_REGISTRIES.put(key, new RegistryBuilder<T>(key).sync(true).create());
+    }
+
+    /** Registers GTM's custom registries on the NeoForge mod bus. */
+    public static void init(IEventBus modBus) {
+        modBus.addListener(GTRegistries::registerCustomRegistries);
+        modBus.addListener(GTRegistries::registerCustomEntries);
+    }
+
+    private static void registerCustomRegistries(NewRegistryEvent event) {
+        NEOFORGE_REGISTRIES.values().forEach(event::register);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static void registerCustomEntries(RegisterEvent event) {
+        GTRegistry registry = CUSTOM_REGISTRIES.get(event.getRegistryKey());
+        if (registry != null) {
+            for (Object entryObject : registry.entries()) {
+                Map.Entry entry = (Map.Entry) entryObject;
+                event.register((ResourceKey) event.getRegistryKey(), (Identifier) entry.getKey(),
+                        () -> entry.getValue());
+            }
         }
 
-        return value;
+        Map<Identifier, Object> pending = PENDING_REGISTRATIONS.remove(event.getRegistryKey());
+        if (pending != null) {
+            pending.forEach((id, value) -> event.register((ResourceKey) event.getRegistryKey(), id, () -> value));
+        }
+    }
+
+    /** Returns the NeoForge registry for a GTM registry key after registration. */
+    @SuppressWarnings("unchecked")
+    public static <T> Registry<T> registry(Identifier registryName) {
+        return (Registry<T>) NEOFORGE_REGISTRIES.entrySet().stream()
+                .filter(entry -> entry.getKey().location().equals(registryName))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** Resolves a holder from a registered GTM registry without exposing its implementation map. */
+    public static <T> java.util.Optional<net.minecraft.core.Holder.Reference<T>> holder(
+                                                                                        ResourceKey<Registry<T>> registryKey,
+                                                                                        Identifier valueKey) {
+        Registry<T> registry = registry(registryKey.location());
+        return registry == null ? java.util.Optional.empty() : registry.get(valueKey);
+    }
+
+    public static Collection<Registry<?>> getRegistries() {
+        return java.util.Collections.unmodifiableCollection(NEOFORGE_REGISTRIES.values());
     }
 
     private static final RegistryAccess BLANK = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);

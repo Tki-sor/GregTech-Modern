@@ -1,102 +1,80 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.ingredient.nbtpredicate.NBTPredicate;
 import com.gregtechceu.gtceu.api.recipe.ingredient.nbtpredicate.NBTPredicates;
 import com.gregtechceu.gtceu.api.recipe.ingredient.nbtpredicate.TrueNBTPredicate;
+import com.gregtechceu.gtceu.data.recipe.GTIngredientTypes;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.AbstractIngredient;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import java.util.stream.Stream;
 
-public class NBTPredicateIngredient extends AbstractIngredient {
+public final class NBTPredicateIngredient implements ICustomIngredient {
 
-    public static final ResourceLocation TYPE = GTCEu.id("nbt_predicate");
+    public static final MapCodec<NBTPredicateIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            ItemStack.CODEC.fieldOf("stack").forGetter(value -> value.stack),
+            net.minecraft.util.ExtraCodecs.JSON.fieldOf("predicate")
+                    .xmap(value -> NBTPredicates.fromJson(value.getAsJsonObject()), NBTPredicate::toJson)
+                    .forGetter(value -> value.predicate))
+            .apply(instance, NBTPredicateIngredient::new));
+
     public static final NBTPredicate ALWAYS_TRUE = new TrueNBTPredicate();
     private final NBTPredicate predicate;
     private final ItemStack stack;
 
     public NBTPredicateIngredient(ItemStack stack, NBTPredicate predicate) {
-        super(Stream.of(new Ingredient.ItemValue(stack)));
-        this.stack = stack;
+        this.stack = stack.copy();
         this.predicate = predicate;
     }
 
-    protected NBTPredicateIngredient(ItemStack stack) {
-        this(stack, ALWAYS_TRUE);
+    public static Ingredient of(ItemStack stack) {
+        return of(stack, ALWAYS_TRUE);
     }
 
-    public static NBTPredicateIngredient of(ItemStack stack, NBTPredicate predicate) {
-        return new NBTPredicateIngredient(stack, predicate);
+    public static Ingredient of(ItemStack stack, NBTPredicate predicate) {
+        return new NBTPredicateIngredient(stack, predicate).toVanilla();
     }
 
-    public static NBTPredicateIngredient of(ItemStack stack) {
-        return NBTPredicateIngredient.of(stack, ALWAYS_TRUE);
+    @Override
+    public boolean test(ItemStack input) {
+        CustomData customData = input.get(DataComponents.CUSTOM_DATA);
+        return !input.isEmpty() && input.is(stack.getItem())
+                && predicate.test(customData == null ? new net.minecraft.nbt.CompoundTag() : customData.copyTag());
     }
 
-    public boolean test(@Nullable ItemStack input) {
-        if (input == null) {
-            return false;
-        } else {
-            return this.stack.getItem() == input.getItem() &&
-                    predicate.test(input.getOrCreateTag());
-        }
+    @Override
+    public Stream<Holder<Item>> items() {
+        return Stream.of(stack.getItem().builtInRegistryHolder());
     }
 
+    @Override
     public boolean isSimple() {
         return false;
     }
 
-    public @NotNull IIngredientSerializer<? extends Ingredient> getSerializer() {
-        return NBTPredicateIngredient.Serializer.INSTANCE;
+    @Override
+    public IngredientType<?> getType() {
+        return GTIngredientTypes.NBT_PREDICATE.get();
     }
 
-    public JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("type", TYPE.toString());
-        json.addProperty("item", ForgeRegistries.ITEMS.getKey(this.stack.getItem()).toString());
-        json.addProperty("count", this.stack.getCount());
-        if (this.stack.hasTag()) {
-            json.addProperty("nbt", this.stack.getTag().toString());
-        }
-        json.add("predicate", predicate.toJson());
-        return json;
+    @Override
+    public boolean equals(Object object) {
+        return object instanceof NBTPredicateIngredient other && stack.equals(other.stack)
+                && predicate.equals(other.predicate);
     }
 
-    public static class Serializer implements IIngredientSerializer<NBTPredicateIngredient> {
-
-        public static final NBTPredicateIngredient.Serializer INSTANCE = new NBTPredicateIngredient.Serializer();
-
-        public @NotNull NBTPredicateIngredient parse(FriendlyByteBuf buffer) {
-            var stack = buffer.readItem();
-            var json = buffer.readUtf();
-            var predicate = NBTPredicates.fromJson(GsonHelper.parse(json));
-            return new NBTPredicateIngredient(stack, predicate);
-        }
-
-        public @NotNull NBTPredicateIngredient parse(@NotNull JsonObject json) {
-            var stack = CraftingHelper.getItemStack(json, true);
-            var predicate = NBTPredicates.fromJson(GsonHelper.getAsJsonObject(json, "predicate"));
-
-            return new NBTPredicateIngredient(stack, predicate);
-        }
-
-        public void write(FriendlyByteBuf buffer, NBTPredicateIngredient ingredient) {
-            buffer.writeItem(ingredient.stack);
-            buffer.writeUtf(ingredient.predicate.toJson().toString());
-        }
+    @Override
+    public int hashCode() {
+        return 31 * stack.hashCode() + predicate.hashCode();
     }
 }

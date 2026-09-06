@@ -8,11 +8,11 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -36,7 +36,7 @@ public class GTRecipeTransformer implements ValueTransformer<GTRecipe> {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", value.id.toString());
         tag.put("recipe",
-                GTRecipeSerializer.CODEC.encodeStart(context.nbtOps(), value).result().orElse(new CompoundTag()));
+                GTRecipeSerializer.CODEC.codec().encodeStart(context.nbtOps(), value).result().orElse(new CompoundTag()));
         tag.putInt("ocLevel", value.ocLevel);
         return tag;
     }
@@ -49,21 +49,21 @@ public class GTRecipeTransformer implements ValueTransformer<GTRecipe> {
         if (tag instanceof CompoundTag compoundTag) {
             result = GTRecipeSerializer.CODEC.parse(context.nbtOps(), compoundTag.get("recipe")).result().orElse(null);
             if (result != null) {
-                result.id = ResourceLocation.parse(compoundTag.getString("id"));
+                result.id = Identifier.parse(compoundTag.getString("id"));
                 result.ocLevel = compoundTag.getInt("ocLevel");
             }
         } else if (tag instanceof StringTag stringTag) { // Backwards Compatibility
-            var recipe = recipeManager.byKey(ResourceLocation.parse(stringTag.getAsString())).orElse(null);
+            var recipe = recipeManager.byKey(Identifier.parse(stringTag.getAsString())).orElse(null);
             if (recipe instanceof GTRecipe gtRecipe) {
                 result = gtRecipe;
             } else if (recipe instanceof SmeltingRecipe smeltingRecipe) {
-                result = GTRecipeTypes.FURNACE_RECIPES.toGTrecipe(ResourceLocation.parse(stringTag.getAsString()),
+                result = GTRecipeTypes.FURNACE_RECIPES.toGTrecipe(Identifier.parse(stringTag.getAsString()),
                         smeltingRecipe);
             }
         } else if (tag instanceof ByteArrayTag byteArray) { // Backwards Compatibility
             ByteBuf copiedDataBuffer = Unpooled.copiedBuffer(byteArray.getAsByteArray());
             FriendlyByteBuf buf = new FriendlyByteBuf(copiedDataBuffer);
-            result = (GTRecipe) recipeManager.byKey(buf.readResourceLocation()).orElse(null);
+            result = (GTRecipe) recipeManager.byKey(buf.readIdentifier()).orElse(null);
             buf.release();
         }
         return result;
@@ -71,11 +71,11 @@ public class GTRecipeTransformer implements ValueTransformer<GTRecipe> {
 
     @Override
     public void writeToPacket(FriendlyByteBuf buf, GTRecipe value, TransformerContext<GTRecipe> context) {
-        GTRecipeSerializer.SERIALIZER.toNetwork(buf, value);
+        GTRecipeSerializer.toNetwork((net.minecraft.network.RegistryFriendlyByteBuf) buf, value);
     }
 
     @Override
     public @Nullable GTRecipe readFromPacket(FriendlyByteBuf buf, TransformerContext<GTRecipe> context) {
-        return GTRecipeSerializer.fromNetworkWithoutDatapackSync(buf);
+        return GTRecipeSerializer.fromNetworkWithoutDatapackSync((net.minecraft.network.RegistryFriendlyByteBuf) buf);
     }
 }

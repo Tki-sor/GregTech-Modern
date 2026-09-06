@@ -2,135 +2,97 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
-import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
-import net.minecraft.FieldsAreNonnullByDefault;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.level.Level;
 
-import com.google.gson.JsonObject;
-import lombok.Getter;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import java.util.Map;
+public final class ShapedEnergyTransferRecipe extends ShapedRecipe {
 
-@MethodsReturnNonnullByDefault
-@FieldsAreNonnullByDefault
-public class ShapedEnergyTransferRecipe extends ShapedRecipe {
+    public static final MapCodec<ShapedEnergyTransferRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Recipe.CommonInfo.MAP_CODEC.forGetter(recipe -> recipe.commonInfo),
+            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(recipe -> recipe.bookInfo),
+            ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.pattern),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(recipe -> recipe.resultTemplate),
+            Ingredient.CODEC.fieldOf("chargeIngredient").forGetter(recipe -> recipe.chargeIngredient),
+            ByteBufCodecs.BOOL.codec().fieldOf("overrideCharge").forGetter(recipe -> recipe.overrideCharge),
+            ByteBufCodecs.BOOL.codec().fieldOf("transferMaxCharge").forGetter(recipe -> recipe.transferMaxCharge))
+            .apply(instance, ShapedEnergyTransferRecipe::new));
 
-    public static final RecipeSerializer<ShapedEnergyTransferRecipe> SERIALIZER = new Serializer();
+    public static final StreamCodec<RegistryFriendlyByteBuf, ShapedEnergyTransferRecipe> STREAM_CODEC = StreamCodec.composite(
+            Recipe.CommonInfo.STREAM_CODEC, recipe -> recipe.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, recipe -> recipe.bookInfo,
+            ShapedRecipePattern.STREAM_CODEC, recipe -> recipe.pattern,
+            ItemStackTemplate.STREAM_CODEC, recipe -> recipe.resultTemplate,
+            Ingredient.CONTENTS_STREAM_CODEC, recipe -> recipe.chargeIngredient,
+            ByteBufCodecs.BOOL, recipe -> recipe.overrideCharge,
+            ByteBufCodecs.BOOL, recipe -> recipe.transferMaxCharge,
+            ShapedEnergyTransferRecipe::new);
 
-    @Getter
+    public static final RecipeSerializer<ShapedEnergyTransferRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
+
+    private final ItemStackTemplate resultTemplate;
     private final Ingredient chargeIngredient;
-    @Getter
     private final boolean transferMaxCharge;
-    @Getter
     private final boolean overrideCharge;
 
-    public ShapedEnergyTransferRecipe(ResourceLocation id, String group, int width, int height,
-                                      Ingredient chargeIngredient, boolean overrideCharge, boolean transferMaxCharge,
-                                      NonNullList<Ingredient> recipeItems, ItemStack result) {
-        super(id, group, CraftingBookCategory.MISC, width, height, recipeItems, result);
+    public ShapedEnergyTransferRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,
+                                      ShapedRecipePattern pattern, ItemStackTemplate resultTemplate,
+                                      Ingredient chargeIngredient, boolean overrideCharge, boolean transferMaxCharge) {
+        super(commonInfo, bookInfo, pattern, resultTemplate);
+        this.resultTemplate = resultTemplate;
         this.chargeIngredient = chargeIngredient;
         this.transferMaxCharge = transferMaxCharge;
         this.overrideCharge = overrideCharge;
     }
 
+    public Ingredient getChargeIngredient() { return chargeIngredient; }
+    public boolean isTransferMaxCharge() { return transferMaxCharge; }
+    public boolean isOverrideCharge() { return overrideCharge; }
+
     @Override
-    public ItemStack assemble(CraftingContainer craftingContainer, RegistryAccess registryAccess) {
-        long maxCharge = 0L;
-        long charge = 0L;
-        ItemStack resultStack = super.assemble(craftingContainer, registryAccess);
-        for (ItemStack chargeStack : chargeIngredient.getItems()) {
-            for (int i = 0; i < craftingContainer.getContainerSize(); i++) {
-                if (ItemStack.isSameItem(craftingContainer.getItem(i), chargeStack)) {
-                    ItemStack stack = craftingContainer.getItem(i);
+    public ItemStack assemble(CraftingInput input) {
+        ItemStack result = super.assemble(input);
+        long maxCharge = 0;
+        long charge = 0;
+        for (ItemStack candidate : IngredientUtils.getItems(chargeIngredient)) {
+            for (int i = 0; i < input.size(); i++) {
+                ItemStack stack = input.getItem(i);
+                if (ItemStack.isSameItem(stack, candidate)) {
                     IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
                     if (electricItem != null) {
                         maxCharge += electricItem.getMaxCharge();
                         charge += electricItem.getCharge();
-                        resultStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
-                        resultStack.getOrCreateTag().putLong("Charge", charge);
-                        return resultStack;
                     }
                 }
             }
         }
-        return resultStack;
+        CompoundTag data = new CompoundTag();
+        data.putLong("MaxCharge", maxCharge);
+        data.putLong("Charge", charge);
+        CustomData.set(DataComponents.CUSTOM_DATA, result, data);
+        return result;
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
-        long maxCharge = 0L;
-        long charge = 0L;
-        ItemStack resultStack = super.getResultItem(registryAccess);
-        for (ItemStack chargeStack : chargeIngredient.getItems()) {
-            IElectricItem electricItem = GTCapabilityHelper.getElectricItem(chargeStack);
-            if (electricItem != null) {
-                maxCharge += electricItem.getMaxCharge();
-                charge += electricItem.getCharge();
-                resultStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
-                resultStack.getOrCreateTag().putLong("Charge", charge);
-                return resultStack;
-            }
-        }
-        return resultStack;
-    }
-
-    public static class Serializer implements RecipeSerializer<ShapedEnergyTransferRecipe> {
-
-        @Override
-        public ShapedEnergyTransferRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            String group = GsonHelper.getAsString(json, "group", "");
-            Map<String, Ingredient> key = ShapedRecipeAccessor.callKeyFromJson(GsonHelper.getAsJsonObject(json, "key"));
-            String[] pattern = ShapedRecipeAccessor.callPatternFromJson(GsonHelper.getAsJsonArray(json, "pattern"));
-            int xSize = pattern[0].length();
-            int ySize = pattern.length;
-            NonNullList<Ingredient> dissolved = ShapedRecipeAccessor.callDissolvePattern(pattern, key, xSize, ySize);
-            boolean overrideCharge = GsonHelper.getAsBoolean(json, "overrideCharge");
-            boolean transferMaxCharge = GsonHelper.getAsBoolean(json, "transferMaxCharge");
-            Ingredient chargeIngredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "chargeIngredient"));
-            ItemStack result = ShapedEnergyTransferRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-            return new ShapedEnergyTransferRecipe(recipeId, group, xSize, ySize, chargeIngredient, overrideCharge,
-                    transferMaxCharge, dissolved, result);
-        }
-
-        @Override
-        public ShapedEnergyTransferRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            int xSize = buffer.readVarInt();
-            int ySize = buffer.readVarInt();
-            boolean overrideCharge = buffer.readBoolean();
-            boolean transferMaxCharge = buffer.readBoolean();
-            Ingredient chargeIngredient = Ingredient.fromNetwork(buffer);
-            String group = buffer.readUtf();
-            NonNullList<Ingredient> ingredients = NonNullList.withSize(xSize * ySize, Ingredient.EMPTY);
-            ingredients.replaceAll($ -> Ingredient.fromNetwork(buffer));
-            ItemStack result = buffer.readItem();
-            return new ShapedEnergyTransferRecipe(recipeId, group, xSize, ySize, chargeIngredient, overrideCharge,
-                    transferMaxCharge, ingredients, result);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, ShapedEnergyTransferRecipe recipe) {
-            buffer.writeVarInt(recipe.getWidth());
-            buffer.writeVarInt(recipe.getHeight());
-            buffer.writeBoolean(recipe.isOverrideCharge());
-            buffer.writeBoolean(recipe.isTransferMaxCharge());
-            recipe.getChargeIngredient().toNetwork(buffer);
-            buffer.writeUtf(recipe.getGroup());
-            for (Ingredient ingredient : recipe.getIngredients()) {
-                ingredient.toNetwork(buffer);
-            }
-            buffer.writeItem(((ShapedRecipeAccessor) recipe).getResult());
-        }
+    public RecipeSerializer<ShapedEnergyTransferRecipe> getSerializer() {
+        return SERIALIZER;
     }
 }

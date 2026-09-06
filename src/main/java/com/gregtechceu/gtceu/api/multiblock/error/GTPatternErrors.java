@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.multiblock.error;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 
-import net.minecraftforge.fml.ModLoader;
+import net.neoforged.fml.ModLoader;
 
 import static com.gregtechceu.gtceu.api.registry.GTRegistries.PATTERN_ERRORS;
 
@@ -23,7 +23,8 @@ public class GTPatternErrors {
         register(SinglePredicateError.TYPE);
         register(SimplePatternError.TYPE);
 
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(PATTERN_ERRORS, PatternError.PatternErrorType.class));
+        ModLoader.postEventWrapContainerInModOrder(
+                new GTCEuAPI.RegisterEvent<>(PATTERN_ERRORS, PatternError.PatternErrorType.class));
 
         PATTERN_ERRORS.freeze();
     }

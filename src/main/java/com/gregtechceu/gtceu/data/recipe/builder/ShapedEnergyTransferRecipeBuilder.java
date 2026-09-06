@@ -3,18 +3,19 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.ShapedEnergyTransferRecipe;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -27,7 +28,7 @@ public class ShapedEnergyTransferRecipeBuilder {
 
     protected ItemStack output = ItemStack.EMPTY;
     protected Ingredient chargeIngredient = Ingredient.EMPTY;
-    protected @Nullable ResourceLocation id;
+    protected @Nullable Identifier id;
     protected @Nullable String group;
     protected boolean transferMaxCharge;
     protected boolean overrideCharge;
@@ -35,7 +36,7 @@ public class ShapedEnergyTransferRecipeBuilder {
     protected List<String[]> shape = new ArrayList<>();
     protected Map<Character, Ingredient> ingredientMap = new LinkedHashMap<>();
 
-    public ShapedEnergyTransferRecipeBuilder(@Nullable ResourceLocation id) {
+    public ShapedEnergyTransferRecipeBuilder(@Nullable Identifier id) {
         this.id = id;
     }
 
@@ -106,13 +107,13 @@ public class ShapedEnergyTransferRecipeBuilder {
         return this;
     }
 
-    public ShapedEnergyTransferRecipeBuilder id(ResourceLocation id) {
+    public ShapedEnergyTransferRecipeBuilder id(Identifier id) {
         this.id = id;
         return this;
     }
 
     public ShapedEnergyTransferRecipeBuilder id(String id) {
-        this.id = ResourceLocation.parse(id);
+        this.id = Identifier.parse(id);
         return this;
     }
 
@@ -146,7 +147,7 @@ public class ShapedEnergyTransferRecipeBuilder {
 
         if (!ingredientMap.isEmpty()) {
             JsonObject key = new JsonObject();
-            ingredientMap.forEach((k, v) -> key.add(k.toString(), v.toJson()));
+            ingredientMap.forEach((k, v) -> key.add(k.toString(), IngredientUtils.toJson(v)));
             json.add("key", key);
         }
 
@@ -156,7 +157,7 @@ public class ShapedEnergyTransferRecipeBuilder {
             GTCEu.LOGGER.error("shaped energy transfer recipe {} chargeIngredient is empty", id);
             throw new IllegalArgumentException(id + ": chargeIngredient is empty");
         } else {
-            json.add("chargeIngredient", chargeIngredient.toJson());
+            json.add("chargeIngredient", IngredientUtils.toJson(chargeIngredient));
         }
         if (output.isEmpty()) {
             GTCEu.LOGGER.error("shaped energy transfer recipe {} output is empty", id);
@@ -174,7 +175,7 @@ public class ShapedEnergyTransferRecipeBuilder {
         }
     }
 
-    protected ResourceLocation defaultId() {
+    protected Identifier defaultId() {
         return BuiltInRegistries.ITEM.getKey(output.getItem());
     }
 
@@ -187,7 +188,7 @@ public class ShapedEnergyTransferRecipeBuilder {
             }
 
             @Override
-            public ResourceLocation getId() {
+            public Identifier getId() {
                 var ID = id == null ? defaultId() : id;
                 return ID.withPath("shaped/" + ID.getPath());
             }
@@ -205,7 +206,7 @@ public class ShapedEnergyTransferRecipeBuilder {
 
             @Nullable
             @Override
-            public ResourceLocation getAdvancementId() {
+            public Identifier getAdvancementId() {
                 return null;
             }
         });

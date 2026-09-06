@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.core.util.extensions.QuadLighterExt;
 
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraftforge.client.model.lighting.QuadLighter;
+import net.neoforged.neoforge.client.model.lighting.QuadLighter;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

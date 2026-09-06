@@ -10,16 +10,16 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import lombok.With;
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +115,7 @@ public record SpoilContext(@Nullable Level level,
         if (tag.contains("level")) {
             ctx = ctx.withLevel(ServerLifecycleHooks.getCurrentServer().getLevel(ResourceKey.create(
                     Registries.DIMENSION,
-                    new ResourceLocation(tag.getString("level")))));
+                    new Identifier(tag.getString("level")))));
         }
         if (tag.contains("pos")) {
             ctx = ctx.withPos(BlockPos.of(tag.getLong("pos")));
@@ -128,7 +128,7 @@ public record SpoilContext(@Nullable Level level,
         }
         if (tag.contains("handlerSource")) {
             ctx = ctx.withItemHandlerSource(
-                    ItemHandlerSource.getById(new ResourceLocation(tag.getString("handlerSource"))));
+                    ItemHandlerSource.getById(new Identifier(tag.getString("handlerSource"))));
         }
         if (tag.contains("handlerData")) {
             ctx = ctx.withItemHandlerData(tag.getCompound("handlerData"));
@@ -145,7 +145,7 @@ public record SpoilContext(@Nullable Level level,
      */
     public static abstract class ItemHandlerSource {
 
-        private static final Map<ResourceLocation, ItemHandlerSource> HANDLER_SOURCES = new HashMap<>();
+        private static final Map<Identifier, ItemHandlerSource> HANDLER_SOURCES = new HashMap<>();
 
         /**
          * Represents getting an item handler as a capability of a block, with an optional "side" key in
@@ -181,18 +181,18 @@ public record SpoilContext(@Nullable Level level,
             }
         };
 
-        private static ItemHandlerSource getById(ResourceLocation id) {
+        private static ItemHandlerSource getById(Identifier id) {
             return HANDLER_SOURCES.get(id);
         }
 
-        private final ResourceLocation id;
+        private final Identifier id;
 
-        public ItemHandlerSource(ResourceLocation id) {
+        public ItemHandlerSource(Identifier id) {
             this.id = id;
             HANDLER_SOURCES.put(id, this);
         }
 
-        private ResourceLocation getId() {
+        private Identifier getId() {
             return id;
         }
 

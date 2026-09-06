@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.item;
 
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.CapabilityDispatcher;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.capabilities.CapabilityDispatcher;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 /**
  * An interface for capability providers to implement if they need to store NBT data

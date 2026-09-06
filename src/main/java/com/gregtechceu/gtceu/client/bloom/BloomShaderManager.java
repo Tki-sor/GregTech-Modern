@@ -11,14 +11,14 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.neoforge.event.TickEvent;
 
 import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.io.IOException;
 import java.nio.file.Path;
 
-@Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = GTCEu.MOD_ID, value = Dist.CLIENT)
 @UtilityClass
 public class BloomShaderManager {
 
@@ -77,7 +77,7 @@ public class BloomShaderManager {
 
         if (!isBloomAvailable()) return false;
 
-        ResourceLocation id = null;
+        Identifier id = null;
 
         switch (ConfigHolder.INSTANCE.client.bloom.type) {
             case UNITY -> id = GTCEu.id("shaders/post/bloom_unity.json");

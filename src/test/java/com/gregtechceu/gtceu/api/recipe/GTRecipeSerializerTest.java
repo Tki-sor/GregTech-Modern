@@ -17,9 +17,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import com.google.gson.JsonObject;
 
@@ -47,7 +47,7 @@ public class GTRecipeSerializerTest {
         // Serialize and immediately deserialize
         JsonObject json = new JsonObject();
         GTRecipeBuilder.ofRaw().addCondition(fluidCondition).toJson(json);
-        GTRecipe recipe = GTRecipeSerializer.SERIALIZER.fromJson(GTCEu.id("test"), json);
+        GTRecipe recipe = GTRecipeSerializer.fromJson(GTCEu.id("test"), json);
 
         // Validate
         boolean foundFluid = false;
@@ -81,7 +81,7 @@ public class GTRecipeSerializerTest {
         // Serialize and back
         JsonObject json = new JsonObject();
         GTRecipeBuilder.ofRaw().addCondition(blockCondition).toJson(json);
-        GTRecipe recipe = GTRecipeSerializer.SERIALIZER.fromJson(GTCEu.id("test"), json);
+        GTRecipe recipe = GTRecipeSerializer.fromJson(GTCEu.id("test"), json);
 
         // Validate
         boolean foundBlock = false;

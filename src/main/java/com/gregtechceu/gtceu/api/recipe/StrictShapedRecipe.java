@@ -1,123 +1,63 @@
 package com.gregtechceu.gtceu.api.recipe;
 
-import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
-
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.NonNullList;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.Level;
 
-import com.google.gson.JsonObject;
-import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import java.util.Map;
+public final class StrictShapedRecipe extends ShapedRecipe {
 
-import javax.annotation.ParametersAreNonnullByDefault;
+    public static final MapCodec<StrictShapedRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Recipe.CommonInfo.MAP_CODEC.forGetter(recipe -> recipe.commonInfo),
+            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(recipe -> recipe.bookInfo),
+            ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.pattern),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(recipe -> recipe.resultTemplate),
+            com.mojang.serialization.Codec.BOOL.optionalFieldOf("match_size", false).forGetter(recipe -> recipe.matchSize))
+            .apply(instance, StrictShapedRecipe::new));
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-public class StrictShapedRecipe extends ShapedRecipe {
+    public static final StreamCodec<RegistryFriendlyByteBuf, StrictShapedRecipe> STREAM_CODEC = StreamCodec.composite(
+            Recipe.CommonInfo.STREAM_CODEC, recipe -> recipe.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, recipe -> recipe.bookInfo,
+            ShapedRecipePattern.STREAM_CODEC, recipe -> recipe.pattern,
+            ItemStackTemplate.STREAM_CODEC, recipe -> recipe.resultTemplate,
+            ByteBufCodecs.BOOL, recipe -> recipe.matchSize,
+            StrictShapedRecipe::new);
 
-    public static final RecipeSerializer<StrictShapedRecipe> SERIALIZER = new Serializer();
+    public static final RecipeSerializer<StrictShapedRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 
-    @Getter
+    private final ItemStackTemplate resultTemplate;
     private final boolean matchSize;
 
-    public StrictShapedRecipe(ResourceLocation id, String group, CraftingBookCategory category, int width, int height,
-                              NonNullList<Ingredient> recipeItems, ItemStack result, boolean matchSize) {
-        super(id, group, category, width, height, recipeItems, result);
+    public StrictShapedRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,
+                              ShapedRecipePattern pattern, ItemStackTemplate resultTemplate, boolean matchSize) {
+        super(commonInfo, bookInfo, pattern, resultTemplate);
+        this.resultTemplate = resultTemplate;
         this.matchSize = matchSize;
     }
 
-    @Override
-    public boolean matches(CraftingContainer inv, Level level) {
-        if (matchSize && (inv.getWidth() != this.getWidth() || inv.getHeight() != this.getHeight())) return false;
-        for (int i = 0; i <= inv.getWidth() - this.getWidth(); ++i) {
-            for (int j = 0; j <= inv.getHeight() - this.getHeight(); ++j) {
-                if (this.matches(inv, i, j)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the region of a crafting inventory is match for the recipe.
-     */
-    private boolean matches(CraftingContainer craftingInventory, int width, int height) {
-        for (int i = 0; i < craftingInventory.getWidth(); ++i) {
-            for (int j = 0; j < craftingInventory.getHeight(); ++j) {
-                int k = i - width;
-                int l = j - height;
-                Ingredient ingredient = Ingredient.EMPTY;
-                if (k >= 0 && l >= 0 && k < this.getWidth() && l < this.getHeight()) {
-                    ingredient = this.getIngredients().get(k + l * this.getWidth());
-                }
-                if (ingredient.test(craftingInventory.getItem(i + j * craftingInventory.getWidth()))) continue;
-                return false;
-            }
-        }
-        return true;
+    public boolean matchSize() {
+        return matchSize;
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public boolean matches(CraftingInput input, Level level) {
+        if (matchSize && (input.width() != getWidth() || input.height() != getHeight())) return false;
+        return pattern.matches(input);
+    }
+
+    @Override
+    public RecipeSerializer<StrictShapedRecipe> getSerializer() {
         return SERIALIZER;
-    }
-
-    public static class Serializer implements RecipeSerializer<StrictShapedRecipe> {
-
-        @Override
-        public StrictShapedRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            String string = GsonHelper.getAsString(json, "group", "");
-            CraftingBookCategory craftingBookCategory = CraftingBookCategory.CODEC
-                    .byName(GsonHelper.getAsString(json, "category", null), CraftingBookCategory.MISC);
-            Map<String, Ingredient> map = ShapedRecipeAccessor.callKeyFromJson(GsonHelper.getAsJsonObject(json, "key"));
-            String[] strings = ShapedRecipeAccessor.callPatternFromJson(GsonHelper.getAsJsonArray(json, "pattern"));
-            int i = strings[0].length();
-            int j = strings.length;
-            NonNullList<Ingredient> nonNullList = ShapedRecipeAccessor.callDissolvePattern(strings, map, i, j);
-            ItemStack itemStack = StrictShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-            boolean matchSize = json.get("matchSize").getAsBoolean();
-            return new StrictShapedRecipe(recipeId, string, craftingBookCategory, i, j, nonNullList, itemStack,
-                    matchSize);
-        }
-
-        @Override
-        public StrictShapedRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            int i = buffer.readVarInt();
-            int j = buffer.readVarInt();
-            String string = buffer.readUtf();
-            CraftingBookCategory craftingBookCategory = buffer.readEnum(CraftingBookCategory.class);
-            NonNullList<Ingredient> nonNullList = NonNullList.withSize(i * j, Ingredient.EMPTY);
-            nonNullList.replaceAll(ignored -> Ingredient.fromNetwork(buffer));
-            ItemStack itemStack = buffer.readItem();
-            boolean matchSize = buffer.readBoolean();
-            return new StrictShapedRecipe(recipeId, string, craftingBookCategory, i, j, nonNullList, itemStack,
-                    matchSize);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, StrictShapedRecipe recipe) {
-            buffer.writeVarInt(recipe.getWidth());
-            buffer.writeVarInt(recipe.getHeight());
-            buffer.writeUtf(recipe.getGroup());
-            buffer.writeEnum(recipe.category());
-            for (Ingredient ingredient : recipe.getIngredients()) {
-                ingredient.toNetwork(buffer);
-            }
-            buffer.writeItem(((ShapedRecipeAccessor) recipe).getResult());
-            buffer.writeBoolean(recipe.matchSize);
-        }
     }
 }

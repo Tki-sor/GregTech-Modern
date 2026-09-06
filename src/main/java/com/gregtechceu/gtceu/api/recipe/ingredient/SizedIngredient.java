@@ -1,187 +1,134 @@
 package com.gregtechceu.gtceu.api.recipe.ingredient;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.core.mixins.IngredientAccessor;
-import com.gregtechceu.gtceu.core.mixins.ItemValueAccessor;
-import com.gregtechceu.gtceu.core.mixins.TagValueAccessor;
+import com.gregtechceu.gtceu.data.recipe.GTIngredientTypes;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
+import net.minecraft.core.Holder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-public class SizedIngredient extends Ingredient {
+/** An item ingredient which retains the required stack count in recipe data. */
+public final class SizedIngredient implements ICustomIngredient {
 
-    public static final ResourceLocation TYPE = GTCEu.id("sized");
+    public static final net.minecraft.resources.Identifier TYPE = com.gregtechceu.gtceu.GTCEu.id("sized");
 
-    @Getter
-    protected int amount;
-    @Getter
-    protected final Ingredient inner;
-    /**
-     * This array's elements must be treated as immutable.
-     */
-    protected ItemStack[] itemStacks = null;
-    private boolean changed = true;
-    @Getter
-    private final boolean isEmpty;
-    private final Value value;
+    public static final MapCodec<SizedIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Ingredient.CODEC.fieldOf("ingredient").forGetter(SizedIngredient::getInner),
+            com.mojang.serialization.Codec.intRange(1, Integer.MAX_VALUE).fieldOf("count")
+                    .forGetter(SizedIngredient::getAmount))
+            .apply(instance, SizedIngredient::new));
 
-    protected SizedIngredient(Ingredient inner, int amount) {
-        super(Stream.empty());
-        this.amount = amount;
+    public static final StreamCodec<RegistryFriendlyByteBuf, SizedIngredient> STREAM_CODEC = StreamCodec.composite(
+            IngredientUtils.STREAM_CODEC, SizedIngredient::getInner,
+            ByteBufCodecs.VAR_INT, SizedIngredient::getAmount,
+            SizedIngredient::new);
+
+    private final Ingredient inner;
+    private final int amount;
+
+    public SizedIngredient(Ingredient inner, int amount) {
+        if (amount <= 0) throw new IllegalArgumentException("Ingredient count must be positive");
         this.inner = inner;
-        this.isEmpty = inner.isEmpty();
-        if (isEmpty || inner.getClass() != Ingredient.class) {
-            this.value = null;
-        } else {
-            var values = ((IngredientAccessor) inner).getValues();
-            this.value = values.length == 1 ? values[0] : null;
-        }
+        this.amount = amount;
     }
 
-    protected SizedIngredient(@NotNull TagKey<Item> tag, int amount) {
-        this(Ingredient.of(tag), amount);
+    public static Ingredient create(ItemStack stack) {
+        return create(ingredientFor(stack), stack.getCount());
     }
 
-    protected SizedIngredient(ItemStack itemStack) {
-        this(itemStack.hasTag() ? StrictNBTIngredient.of(itemStack) : Ingredient.of(itemStack), itemStack.getCount());
+    public static Ingredient create(Ingredient inner) {
+        return create(inner, 1);
     }
 
-    public static SizedIngredient create(ItemStack inner) {
-        return new SizedIngredient(inner);
+    public static Ingredient create(Ingredient inner, int amount) {
+        return new SizedIngredient(inner, amount).toVanilla();
     }
 
-    public static SizedIngredient create(Ingredient inner, int amount) {
-        return new SizedIngredient(inner, amount);
+    public static Ingredient create(net.minecraft.tags.TagKey<Item> tag, int amount) {
+        return create(Ingredient.of(tag), amount);
     }
 
-    public static SizedIngredient create(Ingredient inner) {
-        return new SizedIngredient(inner, 1);
-    }
-
-    public static SizedIngredient create(TagKey<Item> tag, int amount) {
-        return new SizedIngredient(tag, amount);
+    private static Ingredient ingredientFor(ItemStack stack) {
+        return stack.isComponentsPatchEmpty() ? Ingredient.of(stack.getItem())
+                : net.neoforged.neoforge.common.crafting.DataComponentIngredient.of(true, stack);
     }
 
     public static Ingredient copy(Ingredient ingredient) {
-        if (ingredient instanceof SizedIngredient sizedIngredient) {
-            if (sizedIngredient.inner instanceof IntProviderIngredient intProviderIngredient) {
-                return copy(intProviderIngredient);
-            }
-            return SizedIngredient.create(sizedIngredient.inner, sizedIngredient.amount);
-        } else if (ingredient instanceof IntCircuitIngredient circuit) {
-            return circuit;
-        } else if (ingredient instanceof IntProviderIngredient provider) {
-            return provider.copy();
+        if (ingredient.isCustom() && ingredient.getCustomIngredient() instanceof SizedIngredient sized) {
+            return create(sized.inner, sized.amount);
         }
-        return SizedIngredient.create(ingredient, ingredient.getItems()[0].getCount());
-    }
-
-    @Override
-    @NotNull
-    public IIngredientSerializer<? extends Ingredient> getSerializer() {
-        return SERIALIZER;
-    }
-
-    public static SizedIngredient fromJson(JsonObject json) {
-        return SERIALIZER.parse(json);
-    }
-
-    @Override
-    public @NotNull JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("type", TYPE.toString());
-        json.addProperty("count", amount);
-        json.add("ingredient", inner.toJson());
-        return json;
-    }
-
-    @Override
-    public boolean test(@Nullable ItemStack stack) {
-        if (stack == null) return false;
-        if (this.isEmpty) return stack.isEmpty();
-
-        if (this.value instanceof TagValueAccessor tagValue) {
-            return stack.is(tagValue.getTag());
-        } else if (this.value instanceof ItemValueAccessor itemValue) {
-            return ItemStack.isSameItem(stack, itemValue.getItem());
+        if (ingredient.isCustom() && ingredient.getCustomIngredient() instanceof IntProviderIngredient provider) {
+            return provider.copy().toVanilla();
         }
-        return inner.test(stack);
+        ItemStack[] items = IngredientUtils.getItems(ingredient);
+        return items.length == 0 ? Ingredient.EMPTY : create(ingredient, items[0].getCount());
     }
 
-    @Override
-    public ItemStack @NotNull [] getItems() {
-        if (changed || itemStacks == null) {
-            var innerStacks = inner.getItems();
-            this.itemStacks = new ItemStack[innerStacks.length];
-            for (int i = 0; i < itemStacks.length; i++) {
-                itemStacks[i] = innerStacks[i].copyWithCount(amount);
-            }
-            changed = false;
-        }
-        return itemStacks;
-    }
-
-    public void setAmount(int amount) {
-        this.amount = amount;
-        this.changed = true;
-    }
-
-    @Override
-    public @NotNull IntList getStackingIds() {
-        return inner.getStackingIds();
-    }
-
-    @Override
-    public int hashCode() {
-        int result = amount;
-        result = 31 * result + Arrays.hashCode(itemStacks);
-        return result;
+    public static SizedIngredient get(Ingredient ingredient) {
+        return ingredient.isCustom() && ingredient.getCustomIngredient() instanceof SizedIngredient sized ? sized : null;
     }
 
     public static Ingredient getInner(Ingredient ingredient) {
-        if (ingredient instanceof SizedIngredient sizedIngredient) {
-            return getInner(sizedIngredient.getInner());
-        } else if (ingredient instanceof IntProviderIngredient intProviderIngredient) {
-            return getInner(intProviderIngredient.getInner());
+        if (ingredient.isCustom() && ingredient.getCustomIngredient() instanceof SizedIngredient sized) {
+            return getInner(sized.inner);
+        }
+        if (ingredient.isCustom() && ingredient.getCustomIngredient() instanceof IntProviderIngredient provider) {
+            return getInner(provider.getInner());
         }
         return ingredient;
     }
 
-    public static final IIngredientSerializer<SizedIngredient> SERIALIZER = new IIngredientSerializer<>() {
+    public Ingredient getInner() {
+        return inner;
+    }
 
-        @Override
-        public @NotNull SizedIngredient parse(FriendlyByteBuf buffer) {
-            int amount = buffer.readVarInt();
-            return new SizedIngredient(Ingredient.fromNetwork(buffer), amount);
-        }
+    public int getAmount() {
+        return amount;
+    }
 
-        @Override
-        public @NotNull SizedIngredient parse(JsonObject json) {
-            int amount = json.get("count").getAsInt();
-            Ingredient inner = Ingredient.fromJson(json.get("ingredient"));
-            return new SizedIngredient(inner, amount);
-        }
+    public ItemStack[] getItems() {
+        return IngredientUtils.getItems(inner);
+    }
 
-        @Override
-        public void write(FriendlyByteBuf buffer, SizedIngredient ingredient) {
-            buffer.writeVarInt(ingredient.getAmount());
-            ingredient.inner.toNetwork(buffer);
-        }
-    };
+    @Override
+    public boolean test(ItemStack stack) {
+        return inner.test(stack) && stack.getCount() >= amount;
+    }
+
+    @Override
+    public Stream<Holder<Item>> items() {
+        return inner.items();
+    }
+
+    @Override
+    public boolean isSimple() {
+        return false;
+    }
+
+    @Override
+    public IngredientType<?> getType() {
+        return GTIngredientTypes.SIZED.get();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        return object instanceof SizedIngredient other && amount == other.amount && inner.equals(other.inner);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(inner, amount);
+    }
 }

@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.ForgeHooksClient;
+import net.neoforged.neoforge.client.ForgeHooksClient;
 
 import com.mojang.blaze3d.pipeline.RenderCall;
 import com.mojang.blaze3d.pipeline.RenderTarget;

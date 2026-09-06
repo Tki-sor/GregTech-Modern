@@ -15,7 +15,7 @@ import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.item.armor.PowerlessJetpack;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.registries.ForgeRegistries;
 
 import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;

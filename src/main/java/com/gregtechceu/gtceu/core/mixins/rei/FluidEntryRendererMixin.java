@@ -23,7 +23,7 @@ public class FluidEntryRendererMixin {
     private void gtceu$addMaterialTooltip(EntryStack<FluidStack> entry, TooltipContext context,
                                           CallbackInfoReturnable<Tooltip> cir) {
         FluidStack stack = entry.getValue();
-        TooltipsHandler.appendFluidTooltips(new net.minecraftforge.fluids.FluidStack(stack.getFluid(),
+        TooltipsHandler.appendFluidTooltips(new net.neoforged.neoforge.fluids.FluidStack(stack.getFluid(),
                 GTMath.saturatedCast(stack.getAmount()), stack.getTag()),
                 cir.getReturnValue()::add,
                 context.getFlag());

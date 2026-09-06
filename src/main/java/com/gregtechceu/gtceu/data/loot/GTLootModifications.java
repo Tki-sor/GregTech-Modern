@@ -4,13 +4,16 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.loot.modifier.AddTableLootModifier;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.data.GlobalLootModifierProvider;
-import net.minecraftforge.common.loot.LootTableIdCondition;
+import net.neoforged.neoforge.common.data.GlobalLootModifierProvider;
+import net.neoforged.neoforge.common.loot.LootTableIdCondition;
 
 import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.concurrent.CompletableFuture;
 
 import static com.gregtechceu.gtceu.common.loot.condition.GTConfigValueCondition.*;
 
@@ -18,8 +21,8 @@ public class GTLootModifications extends GlobalLootModifierProvider {
 
     private static final LootItemCondition[] LOOT_CONFIG_ENABLED_CONDITION = { addLootConfigEnabled().build() };
 
-    public GTLootModifications(PackOutput output) {
-        super(output, GTCEu.MOD_ID);
+    public GTLootModifications(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+        super(output, registries, GTCEu.MOD_ID);
     }
 
     @Override
@@ -35,9 +38,10 @@ public class GTLootModifications extends GlobalLootModifierProvider {
         addAddTableModifier(BuiltInLootTables.STRONGHOLD_CORRIDOR, GTLootTables.STRONGHOLD_CORRIDOR_EXTRA);
     }
 
-    protected void addAddTableModifier(ResourceLocation targetLootTableId, ResourceLocation addedLootTableId) {
+    protected void addAddTableModifier(net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> targetLootTableId,
+                                       net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> addedLootTableId) {
         final LootItemCondition[] conditions = ArrayUtils.add(LOOT_CONFIG_ENABLED_CONDITION,
-                LootTableIdCondition.builder(targetLootTableId).build());
-        add(addedLootTableId.getPath(), new AddTableLootModifier(conditions, addedLootTableId));
+                LootTableIdCondition.builder(targetLootTableId.identifier()).build());
+        add(addedLootTableId.identifier().getPath(), new AddTableLootModifier(conditions, addedLootTableId.identifier()));
     }
 }

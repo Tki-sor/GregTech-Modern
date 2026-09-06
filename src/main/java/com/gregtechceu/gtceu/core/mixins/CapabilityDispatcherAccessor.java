@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.core.mixins;
 
 import net.minecraft.nbt.Tag;
-import net.minecraftforge.common.capabilities.CapabilityDispatcher;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.capabilities.CapabilityDispatcher;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

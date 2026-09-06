@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.core.mixins.forge;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.crafting.PartialNBTIngredient;
+import net.neoforged.neoforge.common.crafting.PartialNBTIngredient;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

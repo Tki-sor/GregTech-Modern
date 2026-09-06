@@ -19,7 +19,7 @@ import com.gregtechceu.gtceu.client.util.quad.GeometryHelper;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
-import net.minecraftforge.client.model.IQuadTransformer;
+import net.neoforged.neoforge.client.model.IQuadTransformer;
 
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;

@@ -9,10 +9,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.TickEvent;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.*;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = GTCEu.MOD_ID)
+@EventBusSubscriber(modid = GTCEu.MOD_ID)
 public class TreeFellingHelper {
 
     private final ServerPlayer player;

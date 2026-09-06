@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.*;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.gui.GTRecipeTypeUILayout;
 import com.gregtechceu.gtceu.api.recipe.gui.RecipeUIModifier;
@@ -25,13 +26,13 @@ import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.fml.ModLoader;
+import net.neoforged.fml.ModLoader;
 
 import brachy.modularui.api.drawable.Text;
 import brachy.modularui.drawable.progress.CircularProgressDrawable;
@@ -577,7 +578,8 @@ public class GTRecipeTypes {
                     ItemStack[] outputs = recipeBuilder.output.containsKey(ItemRecipeCapability.CAP) ?
                             ItemRecipeCapability.CAP
                                     .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).get(0).content())
-                                    .getItems() :
+                                     .isEmpty() ? new ItemStack[0] : IngredientUtils.getItems(ItemRecipeCapability.CAP
+                                             .of(recipeBuilder.output.get(ItemRecipeCapability.CAP).get(0).content())) :
                             null;
                     ItemStack outputItem = outputs == null || outputs.length == 0 ? ItemStack.EMPTY : outputs[0];
                     if (input.isEmpty()) return;
@@ -700,22 +702,22 @@ public class GTRecipeTypes {
     public static final GTRecipeType DUMMY_RECIPES = register("dummy", DUMMY)
             .setXEIVisible(false);
 
-    public static GTRecipeType register(ResourceLocation id, String group, RecipeType<?>... proxyRecipes) {
+    public static GTRecipeType register(Identifier id, String group, RecipeType<?>... proxyRecipes) {
         var recipeType = new GTRecipeType(id, group, proxyRecipes);
         GTRegistries.register(BuiltInRegistries.RECIPE_TYPE, recipeType.registryName, recipeType);
-        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, new GTRecipeSerializer());
+        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, GTRecipeSerializer.SERIALIZER);
         GTRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType);
         return recipeType;
     }
 
     /**
-     * @deprecated Use {@link #register(ResourceLocation, String, RecipeType[])} instead.
+     * @deprecated Use {@link #register(Identifier, String, RecipeType[])} instead.
      */
     @Deprecated(since = "8.0.0", forRemoval = true)
     public static GTRecipeType register(String name, String group, RecipeType<?>... proxyRecipes) {
         var recipeType = new GTRecipeType(GTCEu.id(name), group, proxyRecipes);
         GTRegistries.register(BuiltInRegistries.RECIPE_TYPE, recipeType.registryName, recipeType);
-        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, new GTRecipeSerializer());
+        GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, recipeType.registryName, GTRecipeSerializer.SERIALIZER);
         GTRegistries.RECIPE_TYPES.register(recipeType.registryName, recipeType);
         return recipeType;
     }
@@ -725,7 +727,8 @@ public class GTRecipeTypes {
         if (GTCEu.Mods.isKubeJSLoaded()) {
             GTRegistryInfo.registerFor(GTRegistries.RECIPE_TYPES.getRegistryName());
         }
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.RECIPE_TYPES, GTRecipeType.class));
+        ModLoader.postEventWrapContainerInModOrder(
+                new GTCEuAPI.RegisterEvent<>(GTRegistries.RECIPE_TYPES, GTRecipeType.class));
         GTRegistries.RECIPE_TYPES.freeze();
 
         GTRegistries.register(BuiltInRegistries.RECIPE_SERIALIZER, GTCEu.id("machine"),

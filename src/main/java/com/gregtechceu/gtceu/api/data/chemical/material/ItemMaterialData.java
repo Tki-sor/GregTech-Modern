@@ -13,7 +13,7 @@ import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 import com.gregtechceu.gtceu.utils.memoization.MemoizedBlockSupplier;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +21,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.RegistryObject;
 
 import com.mojang.datafixers.util.Pair;
 import com.tterrag.registrate.util.entry.RegistryEntry;
@@ -148,7 +148,7 @@ public class ItemMaterialData {
             if (key != null && key.isFor(Registries.BLOCK)) {
                 return (Supplier<? extends Block>) registryObject;
             }
-        } else if (supplier instanceof RegistryEntry<? extends ItemLike> entry) {
+        } else if (supplier instanceof RegistryEntry<?, ?> entry) {
             var key = entry.getKey();
             if (key.isFor(Registries.BLOCK)) {
                 return (Supplier<? extends Block>) entry;

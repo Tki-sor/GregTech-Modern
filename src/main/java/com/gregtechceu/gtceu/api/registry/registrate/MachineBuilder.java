@@ -36,7 +36,7 @@ import com.gregtechceu.gtceu.utils.data.RuntimeBlockstateProvider;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -48,8 +48,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.client.model.generators.BlockModelBuilder;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 
 import brachy.modularui.theme.ThemeAPI;
 import com.tterrag.registrate.AbstractRegistrate;
@@ -96,7 +95,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
     protected final BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory;
     protected MachineInstanceFactory<MACHINE> instanceFactory;
 
-    protected final Function<ResourceLocation, DEFINITION> definition;
+    protected final Function<Identifier, DEFINITION> definition;
     @Nullable
     @Getter
     private MachineBuilder.ModelInitializer model = null;
@@ -162,11 +161,11 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
     private String langValue = null;
 
     public MachineBuilder(GTRegistrate registrate, String name,
-                          Function<ResourceLocation, DEFINITION> definition,
+                          Function<Identifier, DEFINITION> definition,
                           BiFunction<BlockBehaviour.Properties, DEFINITION, MetaMachineBlock> blockFactory,
                           BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory,
                           MachineInstanceFactory<MACHINE> instanceFactory) {
-        super(ResourceLocation.fromNamespaceAndPath(registrate.getModid(), name));
+        super(Identifier.fromNamespaceAndPath(registrate.getModid(), name));
         this.registrate = registrate;
         this.name = name;
         this.blockFactory = blockFactory;
@@ -371,24 +370,24 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
         return getThis();
     }
 
-    public SELF simpleModel(ResourceLocation modelName) {
+    public SELF simpleModel(Identifier modelName) {
         return model(createBasicMachineModel(modelName));
     }
 
     public SELF defaultModel() {
-        return simpleModel(registrate.makeResourceLocation("block/machine/template/" + name));
+        return simpleModel(registrate.makeIdentifier("block/machine/template/" + name));
     }
 
-    public SELF tieredHullModel(ResourceLocation model) {
+    public SELF tieredHullModel(Identifier model) {
         return model(createTieredHullMachineModel(model));
     }
 
     public SELF overlayTieredHullModel(String name) {
         modelProperty(GTMachineModelProperties.IS_FORMED, false);
-        return overlayTieredHullModel(registrate.makeResourceLocation("block/machine/part/" + name));
+        return overlayTieredHullModel(registrate.makeIdentifier("block/machine/part/" + name));
     }
 
-    public SELF overlayTieredHullModel(ResourceLocation overlayModel) {
+    public SELF overlayTieredHullModel(Identifier overlayModel) {
         return model(createOverlayTieredHullMachineModel(overlayModel));
     }
 
@@ -400,32 +399,32 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
                                             @Nullable String pipeOverlay,
                                             @Nullable String emissiveOverlay) {
         modelProperty(GTMachineModelProperties.IS_FORMED, false);
-        ResourceLocation overlayTex = registrate.makeResourceLocation("block/overlay/machine/" + overlay);
-        ResourceLocation pipeOverlayTex = pipeOverlay == null ? null :
-                registrate.makeResourceLocation("block/overlay/machine/" + pipeOverlay);
-        ResourceLocation emissiveOverlayTex = emissiveOverlay == null ? null :
-                registrate.makeResourceLocation("block/overlay/machine/" + emissiveOverlay);
+        Identifier overlayTex = registrate.makeIdentifier("block/overlay/machine/" + overlay);
+        Identifier pipeOverlayTex = pipeOverlay == null ? null :
+                registrate.makeIdentifier("block/overlay/machine/" + pipeOverlay);
+        Identifier emissiveOverlayTex = emissiveOverlay == null ? null :
+                registrate.makeIdentifier("block/overlay/machine/" + emissiveOverlay);
         return colorOverlayTieredHullModel(overlayTex, pipeOverlayTex, emissiveOverlayTex);
     }
 
-    public SELF colorOverlayTieredHullModel(ResourceLocation overlay) {
+    public SELF colorOverlayTieredHullModel(Identifier overlay) {
         modelProperty(GTMachineModelProperties.IS_FORMED, false);
         return colorOverlayTieredHullModel(overlay, null, null);
     }
 
-    public SELF colorOverlayTieredHullModel(ResourceLocation overlay,
-                                            @Nullable ResourceLocation pipeOverlay,
-                                            @Nullable ResourceLocation emissiveOverlay) {
+    public SELF colorOverlayTieredHullModel(Identifier overlay,
+                                            @Nullable Identifier pipeOverlay,
+                                            @Nullable Identifier emissiveOverlay) {
         modelProperty(GTMachineModelProperties.IS_PAINTED, false);
         return model(createColorOverlayTieredHullMachineModel(overlay, pipeOverlay, emissiveOverlay));
     }
 
     public SELF overlaySteamHullModel(String name) {
         modelProperty(GTMachineModelProperties.IS_FORMED, false);
-        return overlaySteamHullModel(registrate.makeResourceLocation("block/machine/part/" + name));
+        return overlaySteamHullModel(registrate.makeIdentifier("block/machine/part/" + name));
     }
 
-    public SELF overlaySteamHullModel(ResourceLocation overlayModel) {
+    public SELF overlaySteamHullModel(Identifier overlayModel) {
         modelProperty(GTMachineModelProperties.IS_STEEL_MACHINE, ConfigHolder.INSTANCE.machines.steelSteamMultiblocks);
         return model(createOverlaySteamHullMachineModel(overlayModel));
     }
@@ -438,64 +437,64 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
                                            @Nullable String pipeOverlay,
                                            @Nullable String emissiveOverlay) {
         modelProperty(GTMachineModelProperties.IS_FORMED, false);
-        ResourceLocation overlayTex = registrate.makeResourceLocation("block/overlay/machine/" + overlay);
-        ResourceLocation pipeOverlayTex = pipeOverlay == null ? null :
-                registrate.makeResourceLocation("block/overlay/machine/" + pipeOverlay);
-        ResourceLocation emissiveOverlayTex = emissiveOverlay == null ? null :
-                registrate.makeResourceLocation("block/overlay/machine/" + emissiveOverlay);
+        Identifier overlayTex = registrate.makeIdentifier("block/overlay/machine/" + overlay);
+        Identifier pipeOverlayTex = pipeOverlay == null ? null :
+                registrate.makeIdentifier("block/overlay/machine/" + pipeOverlay);
+        Identifier emissiveOverlayTex = emissiveOverlay == null ? null :
+                registrate.makeIdentifier("block/overlay/machine/" + emissiveOverlay);
         return colorOverlaySteamHullModel(overlayTex, pipeOverlayTex, emissiveOverlayTex);
     }
 
     public SELF colorOverlaySteamHullModel(String overlay,
-                                           @Nullable ResourceLocation pipeOverlay,
+                                           @Nullable Identifier pipeOverlay,
                                            @Nullable String emissiveOverlay) {
         modelProperty(GTMachineModelProperties.IS_FORMED, false);
-        ResourceLocation overlayTex = registrate.makeResourceLocation("block/overlay/machine/" + overlay);
-        ResourceLocation pipeOverlayTex = pipeOverlay == null ? null :
-                registrate.makeResourceLocation("block/overlay/machine/" + pipeOverlay);
-        ResourceLocation emissiveOverlayTex = emissiveOverlay == null ? null :
-                registrate.makeResourceLocation("block/overlay/machine/" + emissiveOverlay);
+        Identifier overlayTex = registrate.makeIdentifier("block/overlay/machine/" + overlay);
+        Identifier pipeOverlayTex = pipeOverlay == null ? null :
+                registrate.makeIdentifier("block/overlay/machine/" + pipeOverlay);
+        Identifier emissiveOverlayTex = emissiveOverlay == null ? null :
+                registrate.makeIdentifier("block/overlay/machine/" + emissiveOverlay);
         return colorOverlaySteamHullModel(overlayTex, pipeOverlayTex, emissiveOverlayTex);
     }
 
-    public SELF colorOverlaySteamHullModel(ResourceLocation overlay) {
+    public SELF colorOverlaySteamHullModel(Identifier overlay) {
         return colorOverlaySteamHullModel(overlay, null, null);
     }
 
-    public SELF colorOverlaySteamHullModel(ResourceLocation overlay,
-                                           @Nullable ResourceLocation pipeOverlay,
-                                           @Nullable ResourceLocation emissiveOverlay) {
+    public SELF colorOverlaySteamHullModel(Identifier overlay,
+                                           @Nullable Identifier pipeOverlay,
+                                           @Nullable Identifier emissiveOverlay) {
         modelProperty(GTMachineModelProperties.IS_PAINTED, false);
         return model(createColorOverlaySteamHullMachineModel(overlay, pipeOverlay, emissiveOverlay));
     }
 
-    public SELF workableTieredHullModel(ResourceLocation workableModel) {
+    public SELF workableTieredHullModel(Identifier workableModel) {
         modelProperty(GTMachineModelProperties.RECIPE_LOGIC_STATUS, RecipeLogic.Status.IDLE);
         return model(createWorkableTieredHullMachineModel(workableModel));
     }
 
-    public SELF simpleGeneratorModel(ResourceLocation workableModel) {
+    public SELF simpleGeneratorModel(Identifier workableModel) {
         modelProperty(GTMachineModelProperties.RECIPE_LOGIC_STATUS, RecipeLogic.Status.IDLE);
         return model(createSimpleGeneratorModel(workableModel));
     }
 
-    public SELF workableSteamHullModel(boolean isHighPressure, ResourceLocation workableModel) {
+    public SELF workableSteamHullModel(boolean isHighPressure, Identifier workableModel) {
         modelProperty(GTMachineModelProperties.RECIPE_LOGIC_STATUS, RecipeLogic.Status.IDLE);
         return model(createWorkableSteamHullMachineModel(isHighPressure, workableModel));
     }
 
-    public SELF workableCasingModel(ResourceLocation baseCasing, ResourceLocation workableModel) {
+    public SELF workableCasingModel(Identifier baseCasing, Identifier workableModel) {
         modelProperty(GTMachineModelProperties.RECIPE_LOGIC_STATUS, RecipeLogic.Status.IDLE);
         return model(createWorkableCasingMachineModel(baseCasing, workableModel));
     }
 
-    public SELF sidedOverlayCasingModel(ResourceLocation baseCasing,
-                                        ResourceLocation workableModel) {
+    public SELF sidedOverlayCasingModel(Identifier baseCasing,
+                                        Identifier workableModel) {
         return model(createSidedOverlayCasingMachineModel(baseCasing, workableModel));
     }
 
-    public SELF sidedWorkableCasingModel(ResourceLocation baseCasing,
-                                         ResourceLocation workableModel) {
+    public SELF sidedWorkableCasingModel(Identifier baseCasing,
+                                         Identifier workableModel) {
         modelProperty(GTMachineModelProperties.RECIPE_LOGIC_STATUS, RecipeLogic.Status.IDLE);
         return model(createSidedWorkableCasingMachineModel(baseCasing, workableModel));
     }
@@ -643,7 +642,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
     }
 
     protected DEFINITION createDefinition() {
-        return definition.apply(registrate.makeResourceLocation(name));
+        return definition.apply(registrate.makeIdentifier(name));
     }
 
     @Override
@@ -679,7 +678,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
     @HideFromJS
     public DEFINITION register() {
         ModifyMachineEvent event = new ModifyMachineEvent(this);
-        FMLJavaModLoadingContext.get().getModEventBus().post(event);
+        GTCEu.gtModBus.post(event);
         if (GTCEu.Mods.isKubeJSLoaded()) {
             KJSCallWrapper.fireKJSEvent(event);
         }
@@ -689,7 +688,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
         definition.setRotationState(rotationState);
         setupStateDefinition(definition);
         if (model == null && blockModel == null) {
-            simpleModel(registrate.makeResourceLocation("block/machine/template/" + name));
+            simpleModel(registrate.makeIdentifier("block/machine/template/" + name));
         }
         var blockBuilder = BlockBuilderWrapper.makeBlockBuilder(getThis(), definition);
         if (this.langValue != null) {
@@ -829,7 +828,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
                     .item(properties -> builder.itemFactory.apply((MetaMachineBlock) block.get(), properties))
                     .setData(ProviderType.LANG, NonNullBiConsumer.noop()) // do not gen any lang keys
                     // copied from BlockBuilder#item
-                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), builder.registrate.makeResourceLocation("block/machine/" + ctx.getName())))
+                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), builder.registrate.makeIdentifier("block/machine/" + ctx.getName())))
                     .color(() -> () -> builder.itemColor::apply)
                     .properties(builder.itemProp);
         }
@@ -843,7 +842,7 @@ public class MachineBuilder<DEFINITION extends MachineDefinition, MACHINE extend
                                                                             D definition) {
             if (builder.model() == null && builder.blockModel() == null) return;
 
-            final ResourceLocation id = definition.getId();
+            final Identifier id = definition.getId();
             // if generator is null, we're making the block models through GT
             if (generator == null) {
                 // Fake a data provider for the GT model builders

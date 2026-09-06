@@ -20,11 +20,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.capabilities.Capability;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.LazyOptional;
+import net.neoforged.neoforge.event.AttachCapabilitiesEvent;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import lombok.Getter;

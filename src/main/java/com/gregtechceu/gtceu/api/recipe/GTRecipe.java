@@ -9,10 +9,9 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.EnergyStack;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -28,14 +27,13 @@ import java.util.function.BiConsumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-@MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Container> {
 
     public final GTRecipeType recipeType;
     @Getter
     @Setter
-    public ResourceLocation id;
+    public Identifier id;
     public final Map<RecipeCapability<?>, List<Content>> inputs;
     public final Map<RecipeCapability<?>, List<Content>> outputs;
     public final Map<RecipeCapability<?>, List<Content>> tickInputs;
@@ -120,7 +118,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
      * Main constructor, used by {@link GTRecipeBuilder#buildRawRecipe()}
      */
     public GTRecipe(GTRecipeType recipeType,
-                    @Nullable ResourceLocation id,
+                    @Nullable Identifier id,
                     Map<RecipeCapability<?>, List<Content>> inputs,
                     Map<RecipeCapability<?>, List<Content>> outputs,
                     Map<RecipeCapability<?>, List<Content>> tickInputs,
@@ -143,7 +141,7 @@ public class GTRecipe implements net.minecraft.world.item.crafting.Recipe<Contai
     }
 
     public GTRecipe(GTRecipeType recipeType,
-                    @Nullable ResourceLocation id,
+                    @Nullable Identifier id,
                     Map<RecipeCapability<?>, List<Content>> inputs,
                     Map<RecipeCapability<?>, List<Content>> outputs,
                     Map<RecipeCapability<?>, List<Content>> tickInputs,

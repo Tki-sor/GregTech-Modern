@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.integration.recipeviewer.widgets.MultiblockPreviewW
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.gui.navigation.ScreenPosition;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import brachy.modularui.integration.jei.recipe.ModularUIRecipeCategory;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -102,7 +102,7 @@ public class MultiblockInfoJeiCategory extends
     }
 
     @Override
-    public @Nullable ResourceLocation getRegistryName(@NotNull MultiblockPreviewInfoWrapper recipe) {
+    public @Nullable Identifier getRegistryName(@NotNull MultiblockPreviewInfoWrapper recipe) {
         return recipe.definition.getId();
     }
 

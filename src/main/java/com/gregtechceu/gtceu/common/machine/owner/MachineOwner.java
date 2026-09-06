@@ -7,9 +7,9 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.UsernameCache;
-import net.minecraftforge.fml.ModLoader;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.fml.ModLoader;
+import net.neoforged.neoforge.common.UsernameCache;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
@@ -49,7 +49,7 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner, Argonau
         } else {
             event.register(0, PlayerOwner::new);
         }
-        ModLoader.get().postEvent(event);
+        ModLoader.postEventWrapContainerInModOrder(event);
         machineOwnerGenerator = event.ownershipProvider;
     }
 

@@ -46,9 +46,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
@@ -1045,7 +1045,7 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                     continue;
                 }
 
-                var items = ingredient.getItems();
+                var items = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(ingredient);
                 if (items.length == 0 || items[0].isEmpty()) {
                     it.remove();
                     continue;
@@ -1077,8 +1077,8 @@ public class MEPatternBufferPartMachine extends MEBusPartMachine
                 }
 
                 if (amount > 0) {
-                    if (ingredient instanceof SizedIngredient si) {
-                        si.setAmount(amount);
+                    if (SizedIngredient.get(ingredient) instanceof SizedIngredient si) {
+                        it.set(SizedIngredient.create(si.getInner(), amount));
                     } else {
                         items[0].setCount(amount);
                     }

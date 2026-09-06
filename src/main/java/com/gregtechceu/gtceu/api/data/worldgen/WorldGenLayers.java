@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.integration.kjs.GTRegistryInfo;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
-import net.minecraftforge.fml.ModLoader;
+import net.neoforged.fml.ModLoader;
 
 import java.util.Set;
 
@@ -37,7 +37,8 @@ public class WorldGenLayers {
 
     public static void init() {
         AddonFinder.getAddons().forEach(IGTAddon::registerWorldgenLayers);
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.WORLD_GEN_LAYERS, IWorldGenLayer.class));
+        ModLoader.postEventWrapContainerInModOrder(
+                new GTCEuAPI.RegisterEvent<>(GTRegistries.WORLD_GEN_LAYERS, IWorldGenLayer.class));
         if (GTCEu.Mods.isKubeJSLoaded()) {
             GTRegistryInfo.registerFor(GTRegistries.WORLD_GEN_LAYERS.getRegistryName());
         }

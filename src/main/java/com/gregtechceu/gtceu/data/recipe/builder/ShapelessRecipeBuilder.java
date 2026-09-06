@@ -2,18 +2,19 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -38,9 +39,9 @@ public class ShapelessRecipeBuilder {
     @Setter
     private int cookingTime;
     @Setter
-    protected ResourceLocation id;
+    protected Identifier id;
 
-    public ShapelessRecipeBuilder(@Nullable ResourceLocation id) {
+    public ShapelessRecipeBuilder(@Nullable Identifier id) {
         this.id = id;
     }
 
@@ -80,7 +81,7 @@ public class ShapelessRecipeBuilder {
         return this;
     }
 
-    protected ResourceLocation defaultId() {
+    protected Identifier defaultId() {
         return BuiltInRegistries.ITEM.getKey(output.getItem());
     }
 
@@ -91,7 +92,7 @@ public class ShapelessRecipeBuilder {
 
         JsonArray jsonarray = new JsonArray();
         for (Ingredient ingredient : ingredients) {
-            jsonarray.add(ingredient.toJson());
+            jsonarray.add(IngredientUtils.toJson(ingredient));
         }
         json.add("ingredients", jsonarray);
 
@@ -120,7 +121,7 @@ public class ShapelessRecipeBuilder {
             }
 
             @Override
-            public ResourceLocation getId() {
+            public Identifier getId() {
                 var ID = id == null ? defaultId() : id;
                 return ID.withPath("shapeless/" + ID.getPath());
             }
@@ -138,7 +139,7 @@ public class ShapelessRecipeBuilder {
 
             @Nullable
             @Override
-            public ResourceLocation getAdvancementId() {
+            public Identifier getAdvancementId() {
                 return null;
             }
         });

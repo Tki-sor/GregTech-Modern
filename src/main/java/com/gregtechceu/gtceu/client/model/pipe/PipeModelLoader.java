@@ -6,9 +6,9 @@ import com.gregtechceu.gtceu.client.model.machine.variant.MultiVariantModel;
 
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
+import net.neoforged.neoforge.client.model.geometry.IGeometryLoader;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
@@ -21,7 +21,7 @@ import java.util.*;
 public class PipeModelLoader implements IGeometryLoader<UnbakedPipeModel> {
 
     public static final PipeModelLoader INSTANCE = new PipeModelLoader();
-    public static final ResourceLocation ID = GTCEu.id("pipe");
+    public static final Identifier ID = GTCEu.id("pipe");
     public static final String PRIMARY_CENTER_KEY = "center";
     public static final Set<String> CENTER_KEYS = Set.of(PRIMARY_CENTER_KEY, "core", "null", "none");
 

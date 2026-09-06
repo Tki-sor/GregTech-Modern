@@ -9,9 +9,9 @@ import net.minecraft.core.BlockMath;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.model.ForgeFaceData;
-import net.minecraftforge.client.model.QuadTransformers;
+import net.neoforged.neoforge.client.ForgeHooksClient;
+import net.neoforged.neoforge.client.model.ForgeFaceData;
+import net.neoforged.neoforge.client.model.QuadTransformers;
 
 import com.mojang.math.Transformation;
 import org.jetbrains.annotations.Nullable;

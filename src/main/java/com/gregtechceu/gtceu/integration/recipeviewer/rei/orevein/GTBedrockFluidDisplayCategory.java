@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.integration.recipeviewer.widgets.OreVeinRecipeWidget;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import brachy.modularui.integration.rei.recipe.ModularUIREIDisplay;
 import brachy.modularui.integration.rei.recipe.ModularUIREIDisplayCategory;
@@ -66,7 +66,7 @@ public class GTBedrockFluidDisplayCategory extends
 
         private final BedrockFluidDefinition fluid;
 
-        public GTBedrockFluidDisplay(ResourceLocation id, BedrockFluidDefinition fluid) {
+        public GTBedrockFluidDisplay(Identifier id, BedrockFluidDefinition fluid) {
             super(id, () -> new OreVeinRecipeWidget(fluid), GTBedrockFluidDisplayCategory.CATEGORY);
             this.fluid = fluid;
         }

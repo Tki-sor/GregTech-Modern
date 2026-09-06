@@ -7,9 +7,12 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.data.PackOutput;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.loot.LootTableSubProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -18,6 +21,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.concurrent.CompletableFuture;
 
 import static com.gregtechceu.gtceu.common.loot.condition.GTConfigValueCondition.*;
 import static com.gregtechceu.gtceu.common.loot.function.SetEUChargeFunction.setCharge;
@@ -34,20 +38,24 @@ import static net.minecraft.world.level.storage.loot.providers.number.UniformGen
 // spotless:off
 public class GTLootTables extends LootTableProvider {
 
-    public static final ResourceLocation SPAWN_BONUS_CHEST_EXTRA = GTCEu.id("chests/extra/spawn_bonus_chest");
-    public static final ResourceLocation SIMPLE_DUNGEON_EXTRA = GTCEu.id("chests/extra/simple_dungeon");
-    public static final ResourceLocation DESERT_PYRAMID_EXTRA = GTCEu.id("chests/extra/desert_pyramid");
-    public static final ResourceLocation JUNGLE_TEMPLE_EXTRA = GTCEu.id("chests/extra/jungle_temple");
-    public static final ResourceLocation JUNGLE_TEMPLE_DISPENSER_EXTRA = GTCEu.id("chests/extra/jungle_temple_dispenser");
-    public static final ResourceLocation ABANDONED_MINESHAFT_EXTRA = GTCEu.id("chests/extra/abandoned_mineshaft");
-    public static final ResourceLocation VILLAGE_WEAPONSMITH_EXTRA = GTCEu.id("chests/extra/village_weaponsmith");
-    public static final ResourceLocation STRONGHOLD_CROSSING_EXTRA = GTCEu.id("chests/extra/stronghold_crossing");
-    public static final ResourceLocation STRONGHOLD_CORRIDOR_EXTRA = GTCEu.id("chests/extra/stronghold_corridor");
+    public static final ResourceKey<LootTable> SPAWN_BONUS_CHEST_EXTRA = create("chests/extra/spawn_bonus_chest");
+    public static final ResourceKey<LootTable> SIMPLE_DUNGEON_EXTRA = create("chests/extra/simple_dungeon");
+    public static final ResourceKey<LootTable> DESERT_PYRAMID_EXTRA = create("chests/extra/desert_pyramid");
+    public static final ResourceKey<LootTable> JUNGLE_TEMPLE_EXTRA = create("chests/extra/jungle_temple");
+    public static final ResourceKey<LootTable> JUNGLE_TEMPLE_DISPENSER_EXTRA = create("chests/extra/jungle_temple_dispenser");
+    public static final ResourceKey<LootTable> ABANDONED_MINESHAFT_EXTRA = create("chests/extra/abandoned_mineshaft");
+    public static final ResourceKey<LootTable> VILLAGE_WEAPONSMITH_EXTRA = create("chests/extra/village_weaponsmith");
+    public static final ResourceKey<LootTable> STRONGHOLD_CROSSING_EXTRA = create("chests/extra/stronghold_crossing");
+    public static final ResourceKey<LootTable> STRONGHOLD_CORRIDOR_EXTRA = create("chests/extra/stronghold_corridor");
 
-    public GTLootTables(PackOutput output) {
+    public GTLootTables(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, Set.of(), List.of(
                 new SubProviderEntry(ChestLoot::new, LootContextParamSets.CHEST)
-        ));
+        ), registries);
+    }
+
+    private static ResourceKey<LootTable> create(String name) {
+        return ResourceKey.create(Registries.LOOT_TABLE, GTCEu.id(name));
     }
 
     /**
@@ -60,7 +68,7 @@ public class GTLootTables extends LootTableProvider {
         // aren't added into the loot tables' existing pools (they're new pools).
         // That means we must take some care to avoid overfilling loot chests.
         @Override
-        public void generate(BiConsumer<ResourceLocation, LootTable.Builder> provider) {
+        public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> provider) {
             // Negative roll values are skipped, so most rolls' minimums are weighed toward 0. That's intentional and
             // is done to limit the amount of items added to chests.
 

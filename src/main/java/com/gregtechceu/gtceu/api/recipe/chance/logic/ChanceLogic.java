@@ -9,8 +9,8 @@ import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.ModLoader;
+import net.minecraft.resources.Identifier;
+import net.neoforged.fml.ModLoader;
 
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -276,7 +276,7 @@ public abstract class ChanceLogic {
         }
     };
 
-    public ChanceLogic(ResourceLocation id) {
+    public ChanceLogic(Identifier id) {
         GTRegistries.CHANCE_LOGICS.register(id, this);
     }
 
@@ -362,7 +362,8 @@ public abstract class ChanceLogic {
 
     @ApiStatus.Internal
     public static void init() {
-        ModLoader.get().postEvent(new GTCEuAPI.RegisterEvent<>(GTRegistries.CHANCE_LOGICS, ChanceLogic.class));
+        ModLoader.postEventWrapContainerInModOrder(
+                new GTCEuAPI.RegisterEvent<>(GTRegistries.CHANCE_LOGICS, ChanceLogic.class));
         GTRegistries.CHANCE_LOGICS.freeze();
     }
 }

@@ -10,10 +10,10 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.models.blockstates.*;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.client.model.generators.IGeneratedBlockState;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.ExistingFileHelper.ResourceType;
-import net.minecraftforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.client.model.generators.IGeneratedBlockState;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper.ResourceType;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;

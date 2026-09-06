@@ -3,18 +3,19 @@ package com.gregtechceu.gtceu.data.recipe.builder;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.StrictShapedRecipe;
 import com.gregtechceu.gtceu.utils.data.NBTToJsonConverter;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -26,7 +27,7 @@ import java.util.function.Consumer;
 public class ShapedRecipeBuilder {
 
     protected ItemStack output = ItemStack.EMPTY;
-    protected @Nullable ResourceLocation id;
+    protected @Nullable Identifier id;
     protected @Nullable String group;
     protected boolean isStrict;
     protected boolean matchSize;
@@ -34,7 +35,7 @@ public class ShapedRecipeBuilder {
     protected List<String[]> shape = new ArrayList<>();
     protected Map<Character, Ingredient> ingredientMap = new LinkedHashMap<>();
 
-    public ShapedRecipeBuilder(@Nullable ResourceLocation id) {
+    public ShapedRecipeBuilder(@Nullable Identifier id) {
         this.id = id;
     }
 
@@ -90,13 +91,13 @@ public class ShapedRecipeBuilder {
         return this;
     }
 
-    public ShapedRecipeBuilder id(ResourceLocation id) {
+    public ShapedRecipeBuilder id(Identifier id) {
         this.id = id;
         return this;
     }
 
     public ShapedRecipeBuilder id(String id) {
-        this.id = ResourceLocation.parse(id);
+        this.id = Identifier.parse(id);
         return this;
     }
 
@@ -141,7 +142,7 @@ public class ShapedRecipeBuilder {
 
         if (!ingredientMap.isEmpty()) {
             JsonObject key = new JsonObject();
-            ingredientMap.forEach((k, v) -> key.add(k.toString(), v.toJson()));
+            ingredientMap.forEach((k, v) -> key.add(k.toString(), IngredientUtils.toJson(v)));
             json.add("key", key);
         }
 
@@ -163,7 +164,7 @@ public class ShapedRecipeBuilder {
         }
     }
 
-    protected ResourceLocation defaultId() {
+    protected Identifier defaultId() {
         return BuiltInRegistries.ITEM.getKey(output.getItem());
     }
 
@@ -176,7 +177,7 @@ public class ShapedRecipeBuilder {
             }
 
             @Override
-            public ResourceLocation getId() {
+            public Identifier getId() {
                 var ID = id == null ? defaultId() : id;
                 return ID.withPath("shaped/" + ID.getPath());
             }
@@ -194,7 +195,7 @@ public class ShapedRecipeBuilder {
 
             @Nullable
             @Override
-            public ResourceLocation getAdvancementId() {
+            public Identifier getAdvancementId() {
                 return null;
             }
         });

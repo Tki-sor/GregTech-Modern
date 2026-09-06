@@ -12,7 +12,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -41,7 +41,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
         TOOL_HEAD_TO_TOOL_MAP.computeIfAbsent(toolHead, p -> new GTToolType[GTValues.MAX])[tool.electricTier] = tool;
     }
 
-    public ToolHeadReplaceRecipe(ResourceLocation id, CraftingBookCategory category) {
+    public ToolHeadReplaceRecipe(Identifier id, CraftingBookCategory category) {
         super(id, category);
     }
 
@@ -113,7 +113,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
             IElectricItem powerUnit = GTCapabilityHelper.getElectricItem(realTool);
             if (toolHead == null || powerUnit == null) return ItemStack.EMPTY;
             GTToolType[] toolArray = TOOL_HEAD_TO_TOOL_MAP.get(toolHead.tagPrefix());
-            ItemProviderEntry<IGTTool> toolEntry = GTMaterialItems.TOOL_ITEMS.get(toolHead.material(),
+            ItemProviderEntry<IGTTool, IGTTool> toolEntry = GTMaterialItems.TOOL_ITEMS.get(toolHead.material(),
                     toolArray[tool.getElectricTier()]);
             if (toolEntry == null) return ItemStack.EMPTY;
             ItemStack newTool = toolEntry.get().get(powerUnit.getCharge(), powerUnit.getMaxCharge());

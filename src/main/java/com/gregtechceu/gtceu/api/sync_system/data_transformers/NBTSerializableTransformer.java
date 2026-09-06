@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import javax.annotation.Nullable;
 

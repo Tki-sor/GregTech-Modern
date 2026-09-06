@@ -31,12 +31,13 @@ import com.gregtechceu.gtceu.integration.kjs.recipe.components.CapabilityMap;
 import com.gregtechceu.gtceu.integration.kjs.recipe.components.ExtendedOutputItem;
 import com.gregtechceu.gtceu.integration.kjs.recipe.components.GTRecipeComponents;
 import com.gregtechceu.gtceu.utils.ResearchManager;
+import com.gregtechceu.gtceu.utils.IngredientUtils;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -47,8 +48,8 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -92,7 +93,7 @@ public interface GTRecipeSchema {
         @Setter
         public int maxChance = ChanceLogic.getMaxChancedValue();
         @Getter
-        private ResourceLocation idWithoutType;
+        private Identifier idWithoutType;
         @Setter
         public Consumer<GTRecipeJS> onSave;
         @Getter
@@ -110,8 +111,8 @@ public interface GTRecipeSchema {
 
         @HideFromJS
         @Override
-        public GTRecipeJS id(ResourceLocation _id) {
-            this.idWithoutType = ResourceLocation.fromNamespaceAndPath(
+        public GTRecipeJS id(Identifier _id) {
+            this.idWithoutType = Identifier.fromNamespaceAndPath(
                     _id.getNamespace().equals("minecraft") ? this.type.id.getNamespace() : _id.getNamespace(),
                     _id.getPath());
             this.id = idWithoutType.withPrefix(this.type.id.getPath() + "/");
@@ -945,20 +946,20 @@ public interface GTRecipeSchema {
             return addCondition(new CleanroomCondition(cleanroomType));
         }
 
-        public GTRecipeJS dimension(ResourceLocation dimension, boolean reverse) {
+        public GTRecipeJS dimension(Identifier dimension, boolean reverse) {
             return addCondition(
                     new DimensionCondition(ResourceKey.create(Registries.DIMENSION, dimension)).setReverse(reverse));
         }
 
-        public GTRecipeJS dimension(ResourceLocation dimension) {
+        public GTRecipeJS dimension(Identifier dimension) {
             return dimension(dimension, false);
         }
 
-        public GTRecipeJS biome(ResourceLocation biome, boolean reverse) {
+        public GTRecipeJS biome(Identifier biome, boolean reverse) {
             return biome(ResourceKey.create(Registries.BIOME, biome), reverse);
         }
 
-        public GTRecipeJS biome(ResourceLocation biome) {
+        public GTRecipeJS biome(Identifier biome) {
             return biome(biome, false);
         }
 
@@ -970,11 +971,11 @@ public interface GTRecipeSchema {
             return biome(biome, false);
         }
 
-        public GTRecipeJS biomeTag(ResourceLocation biome, boolean reverse) {
+        public GTRecipeJS biomeTag(Identifier biome, boolean reverse) {
             return addCondition(new BiomeTagCondition(TagKey.create(Registries.BIOME, biome)).setReverse(reverse));
         }
 
-        public GTRecipeJS biomeTag(ResourceLocation biome) {
+        public GTRecipeJS biomeTag(Identifier biome) {
             return biomeTag(biome, false);
         }
 
@@ -1018,11 +1019,11 @@ public interface GTRecipeSchema {
             return addCondition(AdjacentFluidCondition.fromFluids(fluids).setReverse(isReverse));
         }
 
-        public GTRecipeJS adjacentFluidTag(ResourceLocation... tagNames) {
+        public GTRecipeJS adjacentFluidTag(Identifier... tagNames) {
             return adjacentFluidTag(false, tagNames);
         }
 
-        public GTRecipeJS adjacentFluidTag(boolean isReverse, ResourceLocation... tagNames) {
+        public GTRecipeJS adjacentFluidTag(boolean isReverse, Identifier... tagNames) {
             List<TagKey<Fluid>> tags = Arrays.stream(tagNames)
                     .map(id -> TagKey.create(Registries.FLUID, id))
                     .toList();
@@ -1037,11 +1038,11 @@ public interface GTRecipeSchema {
             return addCondition(AdjacentBlockCondition.fromBlocks(blocks).setReverse(isReverse));
         }
 
-        public GTRecipeJS adjacentBlockTag(ResourceLocation... tagNames) {
+        public GTRecipeJS adjacentBlockTag(Identifier... tagNames) {
             return adjacentBlockTag(false, tagNames);
         }
 
-        public GTRecipeJS adjacentBlockTag(boolean isReverse, ResourceLocation... tagNames) {
+        public GTRecipeJS adjacentBlockTag(boolean isReverse, Identifier... tagNames) {
             List<TagKey<Block>> tags = Arrays.stream(tagNames)
                     .map(id -> TagKey.create(Registries.BLOCK, id))
                     .toList();
@@ -1222,7 +1223,7 @@ public interface GTRecipeSchema {
          */
 
         @Override
-        public ResourceLocation getOrCreateId() {
+        public Identifier getOrCreateId() {
             boolean wasNull = id == null;
 
             super.getOrCreateId();
@@ -1241,22 +1242,21 @@ public interface GTRecipeSchema {
         }
 
         public InputItem readInputItem(Object from) {
-            if (from instanceof SizedIngredient ingr) {
+            if (from instanceof Ingredient ingredient && SizedIngredient.get(ingredient) instanceof SizedIngredient ingr) {
                 return InputItem.of(ingr.getInner(), ingr.getAmount());
             } else if (from instanceof JsonObject jsonObject) {
-                if (!jsonObject.has("type") ||
-                        !jsonObject.get("type").getAsString().equals(SizedIngredient.TYPE.toString())) {
+                Ingredient ingredient = IngredientUtils.fromJson(jsonObject);
+                if (SizedIngredient.get(ingredient) == null) {
                     return InputItem.of(from);
                 }
-                var sizedIngredient = SizedIngredient.fromJson(jsonObject);
+                var sizedIngredient = SizedIngredient.get(ingredient);
                 return InputItem.of(sizedIngredient.getInner(), sizedIngredient.getAmount());
             }
             return InputItem.of(from);
         }
 
         public JsonElement writeInputItem(InputItem value) {
-            if (value.ingredient instanceof SizedIngredient sized) return sized.toJson();
-            else return SizedIngredient.create(value.ingredient, value.count).toJson();
+            return IngredientUtils.toJson(SizedIngredient.create(value.ingredient, value.count));
         }
 
         @Override
@@ -1275,8 +1275,8 @@ public interface GTRecipeSchema {
                 if (jsonObject.has("content")) {
                     jsonObject = jsonObject.getAsJsonObject("content");
                 }
-                var ingredient = Ingredient.fromJson(jsonObject);
-                return OutputItem.of(ingredient.getItems()[0], chance);
+                var ingredient = IngredientUtils.fromJson(jsonObject);
+                return OutputItem.of(IngredientUtils.getItems(ingredient)[0], chance);
             }
             return OutputItem.of(from);
         }
@@ -1284,14 +1284,11 @@ public interface GTRecipeSchema {
         @Override
         public JsonElement writeOutputItem(OutputItem value) {
             if (value.rolls != null) {
-                return IntProviderIngredient.of(value.item, value.rolls).toJson();
+                return IngredientUtils.toJson(IntProviderIngredient.of(value.item, value.rolls));
             } else if (value instanceof ExtendedOutputItem extended) {
-                if (extended.ingredient.getInner() instanceof IntProviderIngredient intProvider) {
-                    return intProvider.toJson();
-                }
-                return extended.ingredient.toJson();
+                return IngredientUtils.toJson(extended.ingredient);
             }
-            return SizedIngredient.create(value.item).toJson();
+            return IngredientUtils.toJson(SizedIngredient.create(value.item));
         }
 
         @Override
@@ -1327,12 +1324,12 @@ public interface GTRecipeSchema {
         }
     }
 
-    RecipeKey<ResourceLocation> ID = GTRecipeComponents.RESOURCE_LOCATION.key("id");
+    RecipeKey<Identifier> ID = GTRecipeComponents.RESOURCE_LOCATION.key("id");
     RecipeKey<Long> DURATION = TimeComponent.TICKS.key("duration").optional(100L);
     RecipeKey<CompoundTag> DATA = GTRecipeComponents.TAG.key("data").optional((CompoundTag) null);
     RecipeKey<RecipeCondition<?>[]> CONDITIONS = GTRecipeComponents.RECIPE_CONDITION.asArray().key("recipeConditions")
             .optional(new RecipeCondition[0]);
-    RecipeKey<ResourceLocation> CATEGORY = GTRecipeComponents.RESOURCE_LOCATION.key("category").defaultOptional();
+    RecipeKey<Identifier> CATEGORY = GTRecipeComponents.RESOURCE_LOCATION.key("category").defaultOptional();
 
     RecipeKey<CapabilityMap> ALL_INPUTS = GTRecipeComponents.IN.key("inputs").defaultOptional();
     RecipeKey<CapabilityMap> ALL_TICK_INPUTS = GTRecipeComponents.TICK_IN.key("tickInputs").defaultOptional();

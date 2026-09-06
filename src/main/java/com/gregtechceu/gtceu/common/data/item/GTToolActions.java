@@ -3,9 +3,9 @@ package com.gregtechceu.gtceu.common.data.item;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 
 import net.minecraft.Util;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.common.extensions.IForgeBlock;
+import net.neoforged.neoforge.common.ToolAction;
+import net.neoforged.neoforge.common.ToolActions;
+import net.neoforged.neoforge.common.extensions.IForgeBlock;
 
 import com.google.common.collect.Sets;
 

@@ -4,8 +4,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.lighting.ForgeModelBlockRenderer;
-import net.minecraftforge.client.model.lighting.QuadLighter;
+import net.neoforged.neoforge.client.model.lighting.ForgeModelBlockRenderer;
+import net.neoforged.neoforge.client.model.lighting.QuadLighter;
 
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;

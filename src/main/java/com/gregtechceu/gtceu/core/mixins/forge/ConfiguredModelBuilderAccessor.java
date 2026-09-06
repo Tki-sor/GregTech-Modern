@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins.forge;
 
-import net.minecraftforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;

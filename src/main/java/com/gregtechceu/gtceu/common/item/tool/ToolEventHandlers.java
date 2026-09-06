@@ -25,13 +25,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.event.AnvilUpdateEvent;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AnvilUpdateEvent;
+import net.neoforged.neoforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerDestroyItemEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = GTCEu.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = GTCEu.MOD_ID)
 public class ToolEventHandlers {
 
     /**

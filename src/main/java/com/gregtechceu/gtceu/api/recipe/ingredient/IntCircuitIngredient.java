@@ -3,98 +3,82 @@ package com.gregtechceu.gtceu.api.recipe.ingredient;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.item.behavior.IntCircuitBehaviour;
-import com.gregtechceu.gtceu.core.mixins.forge.StrictNBTIngredientAccessor;
+import com.gregtechceu.gtceu.data.recipe.GTIngredientTypes;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.common.crafting.StrictNBTIngredient;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
+import net.neoforged.neoforge.common.crafting.ICustomIngredient;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-public class IntCircuitIngredient extends StrictNBTIngredient {
+import java.util.stream.Stream;
 
-    public static final ResourceLocation TYPE = GTCEu.id("circuit");
+public final class IntCircuitIngredient implements ICustomIngredient {
 
-    public static final int CIRCUIT_MIN = 0;
-    public static final int CIRCUIT_MAX = 32;
+    public static final MapCodec<IntCircuitIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            com.mojang.serialization.Codec.intRange(0, 32).fieldOf("configuration")
+                    .forGetter(IntCircuitIngredient::getConfiguration))
+            .apply(instance, IntCircuitIngredient::new));
 
-    private static final IntCircuitIngredient[] INGREDIENTS = new IntCircuitIngredient[CIRCUIT_MAX + 1];
-
-    public static IntCircuitIngredient of(int configuration) {
-        if (configuration < CIRCUIT_MIN || configuration > CIRCUIT_MAX) {
-            throw new IndexOutOfBoundsException("Circuit configuration " + configuration + " is out of range");
-        }
-        IntCircuitIngredient ingredient = INGREDIENTS[configuration];
-        if (ingredient == null) {
-            INGREDIENTS[configuration] = ingredient = new IntCircuitIngredient(configuration);
-        }
-        return ingredient;
-    }
-
+    private static final IntCircuitIngredient[] INGREDIENTS = new IntCircuitIngredient[33];
     private final int configuration;
-    private ItemStack[] stacks;
+    private final ItemStack stack;
 
     private IntCircuitIngredient(int configuration) {
-        super(IntCircuitBehaviour.stack(configuration));
         this.configuration = configuration;
+        this.stack = IntCircuitBehaviour.stack(configuration);
+    }
+
+    public static Ingredient of(int configuration) {
+        if (configuration < 0 || configuration > 32) {
+            throw new IndexOutOfBoundsException("Circuit configuration " + configuration + " is out of range");
+        }
+        IntCircuitIngredient value = INGREDIENTS[configuration];
+        if (value == null) INGREDIENTS[configuration] = value = new IntCircuitIngredient(configuration);
+        return value.toVanilla();
+    }
+
+    public int getConfiguration() {
+        return configuration;
+    }
+
+    public Ingredient convertToData() {
+        return DataComponentIngredient.of(true, stack);
     }
 
     @Override
-    public boolean test(@Nullable ItemStack stack) {
-        if (stack == null) return false;
-        return stack.is(GTItems.PROGRAMMED_CIRCUIT.get()) &&
-                IntCircuitBehaviour.getCircuitConfiguration(stack) == this.configuration;
+    public boolean test(ItemStack input) {
+        return !input.isEmpty() && input.is(GTItems.PROGRAMMED_CIRCUIT.get())
+                && IntCircuitBehaviour.getCircuitConfiguration(input) == configuration;
     }
 
     @Override
-    public ItemStack @NotNull [] getItems() {
-        if (stacks == null) {
-            stacks = new ItemStack[] { ((StrictNBTIngredientAccessor) this).getStack() };
-        }
-        return stacks;
+    public Stream<Holder<Item>> items() {
+        return Stream.of(GTItems.PROGRAMMED_CIRCUIT.get().builtInRegistryHolder());
     }
 
     @Override
-    public @NotNull JsonElement toJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("type", TYPE.toString());
-        json.addProperty("configuration", configuration);
-        return json;
+    public boolean isSimple() {
+        return false;
     }
 
     @Override
-    @NotNull
-    public IIngredientSerializer<? extends Ingredient> getSerializer() {
-        return SERIALIZER;
+    public IngredientType<?> getType() {
+        return GTIngredientTypes.CIRCUIT.get();
     }
 
-    public static IntCircuitIngredient fromJson(JsonObject json) {
-        return SERIALIZER.parse(json);
+    @Override
+    public boolean equals(Object object) {
+        return object instanceof IntCircuitIngredient other && configuration == other.configuration;
     }
 
-    public static final IIngredientSerializer<IntCircuitIngredient> SERIALIZER = new IIngredientSerializer<>() {
-
-        @Override
-        public @NotNull IntCircuitIngredient parse(FriendlyByteBuf buffer) {
-            int configuration = buffer.readVarInt();
-            return of(configuration);
-        }
-
-        @Override
-        public @NotNull IntCircuitIngredient parse(JsonObject json) {
-            int configuration = json.get("configuration").getAsInt();
-            return of(configuration);
-        }
-
-        @Override
-        public void write(FriendlyByteBuf buffer, IntCircuitIngredient ingredient) {
-            buffer.writeVarInt(ingredient.configuration);
-        }
-    };
+    @Override
+    public int hashCode() {
+        return configuration;
+    }
 }

@@ -14,7 +14,7 @@ import com.gregtechceu.gtceu.integration.recipeviewer.widgets.MultiblockPreviewW
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 
 import brachy.modularui.integration.emi.recipe.ModularUIEmiRecipe;
@@ -112,7 +112,7 @@ public class MultiblockInfoEmiCategory extends EmiRecipeCategory {
         }
 
         @Override
-        public @Nullable ResourceLocation getId() {
+        public @Nullable Identifier getId() {
             return definition.getId().withPrefix("/multi_info/");
         }
 

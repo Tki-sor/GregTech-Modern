@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistr
 
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -70,7 +70,7 @@ public class MaterialParser {
 
     private void readMaterial() throws CommandSyntaxException {
         int i = this.reader.getCursor();
-        ResourceLocation id = ResourceLocation.read(this.reader);
+        Identifier id = Identifier.read(this.reader);
 
         Material material = materials.get(id);
         if (material == null) {
@@ -87,6 +87,6 @@ public class MaterialParser {
 
     private CompletableFuture<Suggestions> suggestMaterial(SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggestResource(
-                materials.values().stream().map(Material::getResourceLocation), builder);
+                materials.values().stream().map(Material::getIdentifier), builder);
     }
 }
