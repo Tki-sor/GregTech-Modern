@@ -1,5 +1,5 @@
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 08
 
 ## Question
@@ -24,3 +24,11 @@ Blocked by: 08
 - 自有注册表、物品、方块、流体、block entity、menu、recipe type 和 capability key 能完成注册并可被 lookup。
 - dedicated server 不加载 client-only 类；现有测试初始化入口能在目标 game-test server 中发现。
 - 迁移记录列出无法机械替换的 API，并将它们转入 11–14 对应票，而不是留下隐式 TODO。
+
+## Answer
+
+核心 NeoForge API 迁移已完成并合入主 PR 分支，实现提交 `aa94af3c9`（早期实现提交 `57cc3ee26`）。
+
+完成内容：NeoForge constructor-injected entrypoint、`IEventBus`、`FMLModContainer`、GTM mod bus boundary、common/client initialization、NeoForge side executor、lifecycle/game bus 事件、`ServerLifecycleHooks`、`DatagenModLoader`、`Identifier`/`ResourceLocation` 迁移、`RegistryBuilder`、`NewRegistryEvent`、`RegisterEvent`、`DeferredRegister`、`DeferredHolder`、custom registry freeze/sync、holder lookup、GTM capability keys（`BlockCapability`/`ItemCapability`/`EntityCapability`）、medical tracker player entity capability、核心 Forge import 迁移与直接受影响的 core test import 迁移。
+
+无法机械替换、按票转入的区域：transfer/capability 语义重构转入本目录 task 12；networking payload 全量迁移转入 task 13；data/datagen 全量迁移转入 task 11；client rendering 全量迁移转入 task 14；optional integration 清理转入 task 15。clean server/GameTest 运行验收随 task 16 全量验收闭环。

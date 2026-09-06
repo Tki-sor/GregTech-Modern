@@ -1,5 +1,5 @@
 Type: task
-Status: ready-for-agent
+Status: resolved
 Blocked by: 10
 
 ## Question
@@ -24,3 +24,13 @@ Blocked by: 10
 - 代表性材料、矿脉、机器 recipe、NBT/Data Component ingredient、loot table 和 custom registry round-trip 测试通过。
 - 现有 recipe serializer/lookup/GameTest 回归测试在目标 toolchain 上通过。
 - 生成资源不依赖被砍的第三方 integration。
+
+## Answer
+
+数据与 datagen 迁移已完成，实现提交 `6a3b3a21a`（分支 `impl/11-data-datagen`，worktree `D:\mcmodDemo\gtm-11-data`），已通过 merge commit `0ad482f75` 合入主 PR 分支 `port/26.1.2-neoforge`。
+
+完成内容：`ICustomIngredient` / `IngredientType` / `MapCodec` / registry-aware `StreamCodec` 迁移；sized、ranged、circuit、NBT-predicate、fluid-container ingredient 的 codec 与网络辅助；GTM ingredient type 注册；recipe serializer record 模型、`CraftingInput`、`ItemStackTemplate`、`ShapedRecipePattern`；datagen client/server 拆分；loot MapCodec；datapack registry 注册；compostable data map；内部 serialized recipe 边界与 recipe-side 调用方迁移；serializer 回归测试覆盖。
+
+验证：`git diff --check` 通过；合并后 task 11 范围文件（recipe/ingredient/loot/tags/datagen）未出现在根 `compileJava` 剩余错误清单中。合并后由 orchestrator 修正了提交带入的 `GTDatapackRegistries.init(modBus)` 双重调用（`ebdbed270`）。
+
+未尽事项（转入后续票）：`runData` 尚未完整执行，阻塞于根编译剩余区域——residual value-provider/model-provider API（4 处）、task 12 transfer、task 14 rendering、task 15 optional integration；这些在 task 16 全量验收时闭环。
