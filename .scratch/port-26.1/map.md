@@ -26,13 +26,13 @@
 
 ## Implementation plan
 
-实施阶段使用同一目录下的计划票；`Blocked by` 是实现前置，不是线性步骤。当前进度：08/09/10/11/13 已完成合入，12 进行中；15 的阻塞项（08, 10, 11）已全部满足，14 的阻塞项（09, 10, 11, 13）也已全部满足，两者可在 12 完成后启动（14 需注意与 task 12 的公共 client/transfer API 冲突面）。
+实施阶段使用同一目录下的计划票；`Blocked by` 是实现前置，不是线性步骤。当前进度：08–13 全部已完成合入（08 工具链、09 MUI、10 核心 API、11 数据、12 传输、13 网络）。剩余：14（客户端渲染/MUI/mixin）与 15（保留集成/砍件清理）可并行启动；task 14/15 之前建议先执行一条"全局机械 API 迁移 pass"（NBT getter Optional 化、搬包改名、tool API，约 2 万处、1000+ 文件，清单见 `implementation-notes/task-12-transfer.md`）——它是 12/13 完成后根编译的最主要阻塞，完成后 task 16 的全量验收才能闭环。
 
 - [08 移植分支与工具链基线](issues/08-toolchain-baseline.md)：已完成；目标坐标、Java/Gradle/MDG、仓库、metadata、run config 和同步基线已写入提交 `de11980fd`。
 - [09 完整 MUI 26.1.2 移植](issues/09-mui-port.md)：已完成，合并提交 `e2c2807aad`；独立 `:modularui` 模块和真实 schema PIP 渲染路径已接入。
 - [10 核心 NeoForge API 与注册系统](issues/10-core-neoforge-api.md)：已完成；入口、总线、注册表、capability key 与包名迁移已写入提交 `aa94af3c9`。
 - [11 数据、配方与 datagen](issues/11-data-and-datagen.md)：已完成，实现提交 `6a3b3a21a` 经合并提交 `0ad482f75` 合入；`runData` 完整执行随 task 16 闭环。
-- [12 传输与 Capability 语义](issues/12-transfer-capabilities.md)：进行中；在 worktree `D:\mcmodDemo\gtm-12-transfer` 分支 `impl/12-transfer-capabilities` 上继续已有未提交迁移。
+- [12 传输与 Capability 语义](issues/12-transfer-capabilities.md)：已完成，实现提交 `5ad899a11` 经合并提交 `72b4872fa` 合入；transaction 单测运行与 sided GameTest 验收随 task 16 闭环。
 - [13 网络与同步协议](issues/13-networking.md)：已完成，实现提交 `94c566957` 经合并提交 `77ade7b04` 合入；GameTest 同步验收随 task 14/16 闭环。
 - [14 客户端渲染、MUI UI 与 mixin](issues/14-client-rendering.md)：阻塞于 09, 10, 11, 13（均已完成）；迁移两阶段渲染、屏幕、BER、动态高亮、mixin 和 MUI 集成；注意与进行中的 task 12 在公共 client/transfer API 上的合并冲突。
 - [15 保留集成与砍件清理](issues/15-integrations-and-cuts.md)：阻塞于 08, 10, 11；接入已核验依赖，删除砍件及其牵连模块，保留无可选依赖时的核心行为。
