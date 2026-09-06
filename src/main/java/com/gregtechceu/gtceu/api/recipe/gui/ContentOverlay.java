@@ -37,7 +37,8 @@ public record ContentOverlay(Content content, boolean perTick)
     }
 
     public void drawRangeAmount(GuiGraphics graphics, float x, float y, int width, int height) {
-        if (content.content() instanceof IntProviderIngredient ingredient) {
+        if (content.content() instanceof net.minecraft.world.item.crafting.Ingredient ingredientValue
+                && IntProviderIngredient.get(ingredientValue) instanceof IntProviderIngredient ingredient) {
             graphics.pose().pushPose();
             graphics.pose().translate(0, 0, 400);
             graphics.pose().scale(0.5f, 0.5f, 1);

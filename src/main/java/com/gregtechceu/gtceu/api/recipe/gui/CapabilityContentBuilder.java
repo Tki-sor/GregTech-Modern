@@ -60,7 +60,7 @@ public interface CapabilityContentBuilder {
                 .overlay(new ContentOverlay(content, perTick));
         recipeViewerSlotWidget.chance(chance);
 
-        if (io == IO.IN && (content.chance() == 0 || innerContent instanceof IntCircuitIngredient)) {
+        if (io == IO.IN && (content.chance() == 0 || innerContent.isCustom() && innerContent.getCustomIngredient() instanceof IntCircuitIngredient)) {
             recipeViewerSlotWidget.recipeSlotRole(RecipeSlotRole.CATALYST);
         } else if (io == IO.IN) {
             recipeViewerSlotWidget.recipeSlotRole(RecipeSlotRole.INPUT);
@@ -73,13 +73,14 @@ public interface CapabilityContentBuilder {
             Content.addChanceTooltips(tooltip, content,
                     recipe.getChanceLogicForCapability(ItemRecipeCapability.CAP, io, perTick));
 
-            if (innerContent instanceof IntProviderIngredient ingredient) {
+            IntProviderIngredient ingredient = IntProviderIngredient.get(innerContent);
+            if (ingredient != null) {
                 IntProvider countProvider = ingredient.getCountProvider();
                 tooltip.add(Component.translatable("gtceu.gui.content.count_range",
                         countProvider.getMinValue(), countProvider.getMaxValue())
                         .withStyle(ChatFormatting.GOLD));
-            } else if (innerContent instanceof SizedIngredient sizedIngredient &&
-                    sizedIngredient.getInner() instanceof IntProviderIngredient ingredient) {
+            } else if (SizedIngredient.get(innerContent) != null &&
+                    IntProviderIngredient.get(SizedIngredient.get(innerContent).getInner()) instanceof IntProviderIngredient ingredient) {
 
                         IntProvider countProvider = ingredient.getCountProvider();
                         tooltip.add(Component.translatable("gtceu.gui.content.count_range",

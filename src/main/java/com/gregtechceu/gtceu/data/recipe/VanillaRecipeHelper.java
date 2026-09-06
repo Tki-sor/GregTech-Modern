@@ -14,7 +14,7 @@ import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.data.recipe.builder.*;
 
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.resources.Identifier;
@@ -695,7 +695,7 @@ public class VanillaRecipeHelper {
 
             ItemLike itemLike;
             if (ingredient instanceof Ingredient ingr) {
-                ItemStack[] stacks = ingr.getItems();
+                ItemStack[] stacks = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(ingr);
                 if (stacks.length == 0) continue;
                 ItemStack stack = stacks[0];
                 if (stack == ItemStack.EMPTY) continue;

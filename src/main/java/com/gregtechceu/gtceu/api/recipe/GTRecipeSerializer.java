@@ -11,6 +11,8 @@ import com.gregtechceu.gtceu.common.recipe.condition.ResearchCondition;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.ExtraCodecs;
@@ -29,11 +31,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
+public final class GTRecipeSerializer {
 
-    public static final Codec<GTRecipe> CODEC = makeCodec(GTCEu.Mods.isKubeJSLoaded());
+    public static final MapCodec<GTRecipe> CODEC = makeCodec(GTCEu.Mods.isKubeJSLoaded());
 
-    public static final GTRecipeSerializer SERIALIZER = new GTRecipeSerializer();
+    public static final StreamCodec<RegistryFriendlyByteBuf, GTRecipe> STREAM_CODEC = StreamCodec.of(
+            GTRecipeSerializer::toNetwork, GTRecipeSerializer::fromNetwork);
+
+    public static final RecipeSerializer<GTRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 
     public Map<RecipeCapability<?>, List<Content>> capabilitiesFromJson(JsonObject json) {
         Map<RecipeCapability<?>, List<Content>> capabilities = new IdentityHashMap<>();
@@ -61,8 +66,7 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         return chanceLogics;
     }
 
-    @Override
-    public @NotNull GTRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
+    public static GTRecipe fromJson(@NotNull Identifier id, @NotNull JsonObject json) {
         var ops = RegistryOps.create(JsonOps.INSTANCE, GTRegistries.builtinRegistry());
         GTRecipe recipe = CODEC.parse(ops, json).getOrThrow(false, GTCEu.LOGGER::error);
         recipe.setId(id);
@@ -96,9 +100,9 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         return map;
     }
 
-    public static GTRecipe fromNetworkWithoutDatapackSync(@NotNull FriendlyByteBuf buf) {
-        Identifier recipeType = buf.readIdentifier();
-        Identifier id = buf.readIdentifier();
+    public static GTRecipe fromNetwork(RegistryFriendlyByteBuf buf) {
+        Identifier recipeType = Identifier.STREAM_CODEC.decode(buf);
+        Identifier id = Identifier.STREAM_CODEC.decode(buf);
         Map<RecipeCapability<?>, List<Content>> inputs = tuplesToMap(
                 buf.readCollection(c -> new ArrayList<>(), GTRecipeSerializer::entryReader));
         Map<RecipeCapability<?>, List<Content>> tickInputs = tuplesToMap(
@@ -155,10 +159,12 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
      * Do not call when reading a recipe from the network manually, use
      * {@link #fromNetworkWithoutDatapackSync(FriendlyByteBuf)} instead
      */
-    @Override
-    @NotNull
-    public GTRecipe fromNetwork(@NotNull Identifier id, @NotNull FriendlyByteBuf buf) {
-        GTRecipe recipe = fromNetworkWithoutDatapackSync(buf);
+    public static GTRecipe fromNetworkWithoutDatapackSync(@NotNull RegistryFriendlyByteBuf buf) {
+        return fromNetwork(buf);
+    }
+
+    public static GTRecipe fromNetworkAndRegister(@NotNull RegistryFriendlyByteBuf buf) {
+        GTRecipe recipe = fromNetwork(buf);
 
         recipe.recipeCategory.addRecipe(recipe);
 
@@ -175,10 +181,9 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         return recipe;
     }
 
-    @Override
-    public void toNetwork(FriendlyByteBuf buf, GTRecipe recipe) {
-        buf.writeIdentifier(recipe.recipeType.registryName);
-        buf.writeIdentifier(recipe.id);
+    public static void toNetwork(RegistryFriendlyByteBuf buf, GTRecipe recipe) {
+        Identifier.STREAM_CODEC.encode(buf, recipe.recipeType.registryName);
+        Identifier.STREAM_CODEC.encode(buf, recipe.id);
         buf.writeCollection(recipe.inputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.tickInputs.entrySet(), GTRecipeSerializer::entryWriter);
         buf.writeCollection(recipe.outputs.entrySet(), GTRecipeSerializer::entryWriter);
@@ -207,7 +212,7 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
         buf.writeVarInt(recipe.subtickParallels);
         buf.writeVarInt(recipe.batchParallels);
         buf.writeInt(recipe.groupColor);
-        buf.writeIdentifier(recipe.recipeCategory.registryKey);
+        Identifier.STREAM_CODEC.encode(buf, recipe.recipeCategory.registryKey);
         buf.writeBoolean(recipe.keepSpoilingProgress);
     }
 
@@ -215,10 +220,10 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
      * Codecs can only have up to 16 inputs. This is at 15 now, so the three recipe Parallel/Batch values are
      * condensed to a List.
      */
-    private static Codec<GTRecipe> makeCodec(boolean isKubeLoaded) {
+    private static MapCodec<GTRecipe> makeCodec(boolean isKubeLoaded) {
         // spotless:off
         if (!isKubeLoaded) {
-            return RecordCodecBuilder.create(instance -> instance.group(
+            return RecordCodecBuilder.mapCodec(instance -> instance.group(
                             GTRegistries.RECIPE_TYPES.codec().fieldOf("type").forGetter(val -> val.recipeType),
                             RecipeIO.CODEC.forGetter(GTRecipe::getRecipeIO),
                             RecipeCondition.CODEC.listOf().optionalFieldOf("recipeConditions", List.of()).forGetter(val -> val.conditions),
@@ -234,7 +239,7 @@ public class GTRecipeSerializer implements RecipeSerializer<GTRecipe> {
                             new GTRecipe(type, recipeIO,
                                     conditions, List.of(), data, duration, allParallels, recipeCategory, groupColor, keepSpoilingProgress)));
         } else {
-            return RecordCodecBuilder.create(instance -> instance.group(
+            return RecordCodecBuilder.mapCodec(instance -> instance.group(
                             GTRegistries.RECIPE_TYPES.codec().fieldOf("type").forGetter(val -> val.recipeType),
                             RecipeIO.CODEC.forGetter(GTRecipe::getRecipeIO),
                             RecipeCondition.CODEC.listOf().optionalFieldOf("recipeConditions", List.of()).forGetter(val -> val.conditions),

@@ -121,7 +121,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
 
             ItemStack[] items;
             int amount;
-            if (ingredient instanceof IntProviderIngredient provider && simulate) {
+            if (IntProviderIngredient.get(ingredient) instanceof IntProviderIngredient provider && simulate) {
                 items = new ItemStack[] { provider.getMaxSizeStack() };
                 amount = provider.getMaxRoll();
             } else {
@@ -130,7 +130,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
                     it.remove();
                     continue;
                 }
-                if (ingredient instanceof SizedIngredient si) amount = si.getAmount();
+                if (SizedIngredient.get(ingredient) instanceof SizedIngredient si) amount = si.getAmount();
                 else amount = items[0].getCount();
             }
 
@@ -191,7 +191,7 @@ public class NotifiableItemStackHandler extends NotifiableRecipeHandlerTrait<Ing
             }
             // Modify ingredient if we didn't finish it off
             if (amount > 0) {
-                if (ingredient instanceof SizedIngredient si) {
+                if (SizedIngredient.get(ingredient) instanceof SizedIngredient si) {
                     si.setAmount(amount);
                 } else {
                     items[0].setCount(amount);

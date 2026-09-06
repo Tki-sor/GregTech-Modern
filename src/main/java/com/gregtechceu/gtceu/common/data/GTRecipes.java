@@ -13,9 +13,8 @@ import com.gregtechceu.gtceu.data.recipe.generated.*;
 import com.gregtechceu.gtceu.data.recipe.misc.*;
 import com.gregtechceu.gtceu.data.recipe.serialized.chemistry.ChemistryRecipes;
 
-import net.minecraft.data.recipes.FinishedRecipe;
+import com.gregtechceu.gtceu.data.recipe.FinishedRecipe;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.block.ComposterBlock;
 
 import dev.latvian.mods.kubejs.bindings.event.ServerEvents;
 import dev.latvian.mods.kubejs.recipe.RecipesEventJS;
@@ -43,8 +42,6 @@ public class GTRecipes {
                 originalConsumer.accept(recipe);
             }
         };
-
-        ComposterRecipes.addComposterRecipes(ComposterBlock.COMPOSTABLES::put);
 
         // Decomposition info loading
         ItemMaterialData.reinitializeMaterialData();

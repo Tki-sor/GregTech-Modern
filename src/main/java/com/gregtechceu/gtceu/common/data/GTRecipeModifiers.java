@@ -72,8 +72,8 @@ public class GTRecipeModifiers {
                 if (inputs == null) return;
                 for (Object inObject : inputs.getConsumedInputs(GTRecipeCapabilities.ITEM)) {
                     if (!(inObject instanceof Ingredient ingredient)) continue;
-                    if (ingredient.getItems().length == 0) continue;
-                    ItemStack in = ingredient.getItems()[0];
+                    if (com.gregtechceu.gtceu.utils.IngredientUtils.getItems(ingredient).length == 0) continue;
+                    ItemStack in = com.gregtechceu.gtceu.utils.IngredientUtils.getItems(ingredient)[0];
                     ISpoilableItem spoilable = GTCapabilityHelper.getSpoilable(in);
                     if (spoilable != null && spoilable.shouldSpoil()) {
                         spoilableCount += in.getCount();
